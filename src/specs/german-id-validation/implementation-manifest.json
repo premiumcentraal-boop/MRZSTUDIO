@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.0.0",
+  "country": "DEU",
+  "coverageWindow": {
+    "from": "2016-06-01",
+    "to": "2026-06-01"
+  },
+  "entryPoint": "validateGermanIdentityDocumentPublic",
+  "importFrom": "src/index.ts",
+  "families": [
+    {
+      "value": "identity_card",
+      "label": "German identity card",
+      "documentTypes": [
+        { "value": "ordinary_identity_card", "label": "Ordinary Personalausweis" },
+        { "value": "temporary_identity_card", "label": "Temporary Personalausweis" },
+        { "value": "replacement_identity_card", "label": "Replacement Personalausweis" }
+      ],
+      "fields": ["issueDate", "expiryDate", "visibleDocumentNumber", "holderAgeAtIssue", "mrz"],
+      "primaryModelIds": ["DE-ID-ORDINARY-2010", "DE-ID-ORDINARY-2021", "DE-ID-ORDINARY-2024-REVISION", "DE-ID-TEMPORARY-2004", "DE-ID-REPLACEMENT-2015"]
+    },
+    {
+      "value": "passport",
+      "label": "German passport",
+      "documentTypes": [
+        { "value": "ordinary_passport", "label": "Ordinary Reisepass" },
+        { "value": "ordinary_passport_48_pages", "label": "Ordinary Reisepass, 48 pages" },
+        { "value": "temporary_passport", "label": "Temporary Reisepass" },
+        { "value": "child_passport", "label": "Legacy Kinderreisepass" },
+        { "value": "diplomatic_passport", "label": "Diplomatic passport" },
+        { "value": "service_passport", "label": "Service passport" },
+        { "value": "non_national_travel_document", "label": "German-issued non-national travel document" }
+      ],
+      "fields": ["issueDate", "expiryDate", "visibleDocumentNumber", "holderAgeAtIssue", "mrz"],
+      "primaryModelIds": ["DE-PASS-ORDINARY-2007", "DE-PASS-ORDINARY-2017", "DE-PASS-ORDINARY-2024", "DE-PASS-TEMPORARY-2010", "DE-PASS-CHILD-2014", "DE-PASS-DIPLOMATIC-SERVICE-2024"]
+    },
+    {
+      "value": "driving_licence",
+      "label": "German driving licence",
+      "documentTypes": [
+        { "value": "ordinary_driving_licence", "label": "Ordinary driving licence card" },
+        { "value": "legacy_driving_licence_exchange_only", "label": "Legacy pre-2013 licence" },
+        { "value": "fahrerqualifizierungsnachweis", "label": "Related Fahrerqualifizierungsnachweis" }
+      ],
+      "fields": ["issueDate", "expiryDate", "visibleDocumentNumber", "holderBirthYear", "licenceCategories", "categoryExpiryDate"],
+      "hiddenFields": ["mrz"],
+      "primaryModelIds": ["DE-DL-CARD-2013", "DE-DL-CARD-2021", "DE-DL-PRE-2013-EXCHANGE"]
+    }
+  ],
+  "statuses": [
+    {
+      "value": "valid",
+      "label": "Public fields consistent",
+      "tone": "neutral_success"
+    },
+    {
+      "value": "invalid",
+      "label": "Public rule failed",
+      "tone": "error"
+    },
+    {
+      "value": "not_checked",
+      "label": "Not checked locally",
+      "tone": "caution"
+    }
+  ],
+  "requiredSafetyBanner": "This tool checks public document-field consistency only. It is not official authenticity, identity, status, loss/theft, or entitlement verification."
+}

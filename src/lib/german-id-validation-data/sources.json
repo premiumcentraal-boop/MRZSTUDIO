@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "0.1.0",
+  "accessedOn": "2026-06-01",
+  "sources": [
+    {
+      "id": "SRC-BMI-PERSONALAUSWEIS",
+      "authority": "Bundesministerium des Innern und für Heimat (BMI)",
+      "title": "German identity card (Personalausweis) — physical and electronic features",
+      "url": "https://www.personalausweisportal.de/",
+      "notes": "Personalausweis 2010 introduced eID. 2021 revision introduces PIN-letter workflow. 2024 revision refreshes optical features. TD1 MRZ on back."
+    },
+    {
+      "id": "SRC-BUNDESDRUCKEREI-DOCNUM",
+      "authority": "Bundesdruckerei",
+      "title": "German travel document number layout",
+      "url": "https://www.bundesdruckerei.de/",
+      "notes": "9-character alphanumeric document number. ICAO 9303 mod-10 check digit on MRZ. Characters I and O are avoided to prevent ambiguity with 1 and 0."
+    },
+    {
+      "id": "SRC-BMI-REISEPASS",
+      "authority": "Bundesministerium des Innern und für Heimat (BMI)",
+      "title": "German passport (Reisepass) — official feature catalogue",
+      "url": "https://www.bmi.bund.de/",
+      "notes": "Reisepass 2007 (ePass), 2017 polycarbonate datapage refresh, 2024 latest model. TD3 MRZ. 10-year validity (6 years if holder under 24)."
+    },
+    {
+      "id": "SRC-ICAO-9303",
+      "authority": "International Civil Aviation Organization (ICAO)",
+      "title": "Doc 9303 — Machine Readable Travel Documents",
+      "url": "https://www.icao.int/publications/pages/publication.aspx?docnum=9303",
+      "notes": "TD1 (3x30) and TD3 (2x44) MRZ structure. Check digit weights [7,3,1]. '<' counts as 0, A-Z as 10-35."
+    },
+    {
+      "id": "SRC-BZSt-STEUER-ID",
+      "authority": "Bundeszentralamt für Steuern (BZSt)",
+      "title": "Steuerliche Identifikationsnummer (Steuer-IdNr) structure",
+      "url": "https://www.bzst.de/DE/Privatpersonen/SteuerlicheIdentifikationsnummer/steuerlicheidentifikationsnummer_node.html",
+      "notes": "11 digits. First digit non-zero. In first 10 digits exactly one digit appears twice or thrice; remaining digits each appear at most once. Check digit (11th) is ISO 7064 MOD 11,10."
+    },
+    {
+      "id": "SRC-EU-DL-2006-126",
+      "authority": "European Union (Directive 2006/126/EC and 2022 EU revision)",
+      "title": "European driving licence — Anlage 8 FeV",
+      "url": "https://eur-lex.europa.eu/eli/dir/2006/126/oj",
+      "notes": "EU credit-card licence in DE from 19 Jan 2013. Field 5 is the licence number — no public checksum is published. Card validity 15 years (categories AM, A, B, BE, T). C/D categories: 5 years."
+    },
+    {
+      "id": "SRC-FEV-ANLAGE-8E",
+      "authority": "Fahrerlaubnis-Verordnung (FeV), Anlage 8e",
+      "title": "Exchange-deadline schedule for pre-2013 German driving licences",
+      "url": "https://www.gesetze-im-internet.de/fev_2010/anlage_8e.html",
+      "notes": "Mandatory exchange of all pre-19-Jan-2013 paper/card licences by 19 Jan 2033, staged by birth year and licence year."
+    },
+    {
+      "id": "SRC-BMVI-FUEHRERSCHEIN",
+      "authority": "Bundesministerium für Digitales und Verkehr (BMDV)",
+      "title": "German driving licence model 2021 / 2025",
+      "url": "https://www.bmdv.bund.de/",
+      "notes": "2021 EU-aligned refresh. 2025 model introduces updated optical security features. No published checksum for field 5."
+    }
+  ]
+}

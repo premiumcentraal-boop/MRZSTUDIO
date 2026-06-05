@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ID Generator Build Instructions - Figma + Supabase + Local Photoshop Worker</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111823;
+      --panel-2: #151e2b;
+      --text: #e8edf5;
+      --muted: #9aa7b8;
+      --line: #253348;
+      --accent: #52d5ff;
+      --accent-2: #8b5cf6;
+      --safe: #45d483;
+      --warn: #f5c451;
+      --bad: #ff6b6b;
+      --code: #0a0f16;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(82, 213, 255, 0.12), transparent 36rem),
+        radial-gradient(circle at top right, rgba(139, 92, 246, 0.12), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 48px 0 80px;
+    }
+
+    header {
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+      border-radius: 24px;
+      padding: 34px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      margin: 0 0 14px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      letter-spacing: -0.055em;
+    }
+
+    h2 {
+      font-size: 28px;
+      letter-spacing: -0.035em;
+      padding-top: 10px;
+    }
+
+    h3 {
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      margin-top: 22px;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    section {
+      margin-top: 28px;
+      border: 1px solid var(--line);
+      background: rgba(17, 24, 35, 0.78);
+      border-radius: 22px;
+      padding: 28px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 820px) {
+      .grid.two,
+      .grid.three {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      padding: 18px;
+    }
+
+    .card strong {
+      color: var(--text);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 4px 6px 4px 0;
+    }
+
+    .pill.good {
+      border-color: rgba(69, 212, 131, 0.35);
+      color: #bdf5d4;
+      background: rgba(69, 212, 131, 0.08);
+    }
+
+    .pill.warn {
+      border-color: rgba(245, 196, 81, 0.35);
+      color: #ffe1a0;
+      background: rgba(245, 196, 81, 0.08);
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+      background: rgba(82, 213, 255, 0.07);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 18px 0;
+      color: var(--muted);
+    }
+
+    .safe-note {
+      border-left: 4px solid var(--safe);
+      background: rgba(69, 212, 131, 0.07);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 18px 0;
+      color: var(--muted);
+    }
+
+    .warning {
+      border-left: 4px solid var(--warn);
+      background: rgba(245, 196, 81, 0.08);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 18px 0;
+      color: var(--muted);
+    }
+
+    code, pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      color: #d6e2f0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    ol, ul {
+      color: var(--muted);
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .toc {
+      columns: 2;
+      column-gap: 28px;
+      margin: 8px 0 0;
+      padding-left: 22px;
+    }
+
+    @media (max-width: 820px) {
+      .toc {
+        columns: 1;
+      }
+    }
+
+    .status-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .flow {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .footer {
+      color: var(--muted);
+      text-align: center;
+      margin-top: 36px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Build document for Figma AI / developer handoff</div>
+      <h1>ID Generator Page Build Instructions</h1>
+      <p>
+        This document describes how to build a new third page under <strong>Custom Tools</strong> called
+        <strong>ID Generator</strong>. The page is intended for a legitimate internal company badge workflow.
+        It connects a Figma-designed web interface to Supabase, a local Windows worker, and Photoshop automation.
+      </p>
+      <div class="status-line">
+        <span class="pill good">Minimal architecture</span>
+        <span class="pill good">Stable local Photoshop rendering</span>
+        <span class="pill good">Supabase jobs + storage</span>
+        <span class="pill warn">Internal company badges only</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>Table of Contents</h2>
+      <ol class="toc">
+        <li><a href="#executive-summary">Executive summary</a></li>
+        <li><a href="#scope">Scope and safety rules</a></li>
+        <li><a href="#figma-page">Figma page requirement</a></li>
+        <li><a href="#architecture">System architecture</a></li>
+        <li><a href="#ui">ID Generator UI specification</a></li>
+        <li><a href="#data-model">Data model</a></li>
+        <li><a href="#supabase">Supabase setup</a></li>
+        <li><a href="#storage">Storage buckets</a></li>
+        <li><a href="#frontend">Frontend logic</a></li>
+        <li><a href="#local-worker">Local worker logic</a></li>
+        <li><a href="#photoshop">Photoshop JSX automation</a></li>
+        <li><a href="#fonts">Font consistency</a></li>
+        <li><a href="#statuses">Job statuses</a></li>
+        <li><a href="#errors">Error handling</a></li>
+        <li><a href="#acceptance">Acceptance checklist</a></li>
+        <li><a href="#figma-prompt">Copy-paste prompt for Figma AI</a></li>
+      </ol>
+    </section>
+
+    <section id="executive-summary">
+      <h2>1. Executive Summary</h2>
+      <p>
+        Build the new <strong>ID Generator</strong> page as a frontend-only job creator. The page should not attempt to
+        edit PSD files directly. Instead, it creates a job in Supabase. A local Windows worker reads the job, runs
+        Photoshop with a JSX script, exports the result, uploads it back to Supabase, and the website displays the final file.
+      </p>
+
+      <pre class="flow">Figma-designed website
+  → Custom Tools
+    → Page 3: ID Generator
+      → Create Supabase job
+        → Local Windows worker claims job
+          → Photoshop opens EmployeeID.psd
+            → JSX updates text, images, smart objects, and fonts
+              → Export PNG/PDF/PSD
+                → Upload output to Supabase
+                  → Website displays completed result</pre>
+
+      <div class="note">
+        <strong>Executive decision:</strong> Use Supabase + local Node.js worker + Photoshop JSX. This is easier and more stable than a Figma plugin, webhook, ngrok server, UXP plugin, or browser-based PSD rendering.
+      </div>
+    </section>
+
+    <section id="scope">
+      <h2>2. Scope and Safety Rules</h2>
+      <p>
+        The page must be framed and designed as an <strong>internal company badge generator</strong>. It should not be
+        positioned as a government ID, passport, driver license, travel document, bank KYC document, or official identity document generator.
+      </p>
+
+      <div class="safe-note">
+        <strong>Required product language:</strong> Use “Internal Company Badge”, “Employee Badge”, “Staff Card”, or “Access Badge” in helper text and descriptions. The navigation page name can remain <strong>ID Generator</strong>, but the visible page subtitle should clarify that it is for internal company badge generation.
+      </div>
+
+      <h3>Do not build these features</h3>
+      <ul>
+        <li>No official document templates.</li>
+        <li>No passport, national ID, driver license, visa, or government-document wording.</li>
+        <li>No MRZ generation or validation.</li>
+        <li>No fake security features, hologram simulation, perforation simulation, machine-readable official identifiers, or official seals.</li>
+        <li>No claims that the output is legally valid identification.</li>
+      </ul>
+
+      <h3>Allowed features</h3>
+      <ul>
+        <li>Internal employee badge generation.</li>
+        <li>Company branding, employee name, role, department, employee number, validity dates, photo, signature, QR code for internal systems, and export preview.</li>
+        <li>Local Photoshop automation for legitimate internal card production.</li>
+      </ul>
+    </section>
+
+    <section id="figma-page">
+      <h2>3. Figma Page Requirement</h2>
+      <p>
+        Add a new page under <strong>Custom Tools</strong>. This must be the third page in that section.
+      </p>
+
+      <pre>Navigation structure:
+
+Custom Tools
+├── Page 1: Existing Custom Tool
+├── Page 2: Existing Custom Tool
+└── Page 3: ID Generator</pre>
+
+      <h3>Route</h3>
+      <pre>/custom-tools/id-generator</pre>
+
+      <h3>Page title</h3>
+      <pre>ID Generator</pre>
+
+      <h3>Page subtitle</h3>
+      <pre>Create internal employee badge outputs from the EmployeeID.psd Photoshop template.</pre>
+
+      <h3>Primary CTA</h3>
+      <pre>Generate Badge</pre>
+
+      <h3>Secondary CTAs</h3>
+      <pre>Preview Job
+Reset Form
+Download Result
+Open Output
+View Job Log</pre>
+    </section>
+
+    <section id="architecture">
+      <h2>4. System Architecture</h2>
+
+      <div class="grid three">
+        <div class="card">
+          <h3>Frontend</h3>
+          <p>Figma-designed web page. It uploads images, creates jobs, and displays job status.</p>
+        </div>
+        <div class="card">
+          <h3>Supabase</h3>
+          <p>Stores job rows, input JSON, uploaded images, final outputs, logs, and status.</p>
+        </div>
+        <div class="card">
+          <h3>Local Worker</h3>
+          <p>Runs on the Windows machine with Photoshop installed. Polls jobs and executes JSX.</p>
+        </div>
+      </div>
+
+      <h3>Why this architecture is the most stable</h3>
+      <ul>
+        <li>No public port on the local computer.</li>
+        <li>No ngrok or temporary tunnel required.</li>
+        <li>No Figma plugin complexity for version 1.</li>
+        <li>Photoshop renders final files locally with the correct fonts installed.</li>
+        <li>Supabase handles database, storage, API access, and job status in one place.</li>
+      </ul>
+    </section>
+
+    <section id="ui">
+      <h2>5. ID Generator UI Specification</h2>
+
+      <h3>Page layout</h3>
+      <pre>ID Generator Page
+├── Header
+│   ├── Title: ID Generator
+│   ├── Subtitle: Internal employee badge generation
+│   └── Status indicator: Local worker online/offline
+│
+├── Left Panel: Input Form
+│   ├── Template selector
+│   ├── Employee details
+│   ├── Badge validity
+│   ├── Image uploads
+│   └── Generate button
+│
+├── Right Panel: Preview + Job Status
+│   ├── Draft summary
+│   ├── Uploaded image previews
+│   ├── Current job status
+│   ├── Progress timeline
+│   └── Output downloads
+│
+└── Bottom Panel: Job History
+    ├── Recent jobs
+    ├── Status
+    ├── Created date
+    ├── Output link
+    └── Error log</pre>
+
+      <h3>Required form fields</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field Label</th>
+            <th>Field Key</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Template</td>
+            <td>template</td>
+            <td>Select</td>
+            <td>Yes</td>
+            <td>Default value: EmployeeID.psd</td>
+          </tr>
+          <tr>
+            <td>Employee Name</td>
+            <td>employee_name</td>
+            <td>Text</td>
+            <td>Yes</td>
+            <td>Main visible name on badge</td>
+          </tr>
+          <tr>
+            <td>Employee ID</td>
+            <td>employee_id</td>
+            <td>Text</td>
+            <td>Yes</td>
+            <td>Internal company employee number</td>
+          </tr>
+          <tr>
+            <td>Department</td>
+            <td>department</td>
+            <td>Text</td>
+            <td>No</td>
+            <td>Department or team</td>
+          </tr>
+          <tr>
+            <td>Role</td>
+            <td>role</td>
+            <td>Text</td>
+            <td>No</td>
+            <td>Employee role or function</td>
+          </tr>
+          <tr>
+            <td>Valid From</td>
+            <td>valid_from</td>
+            <td>Date</td>
+            <td>No</td>
+            <td>Internal badge start date</td>
+          </tr>
+          <tr>
+            <td>Valid Until</td>
+            <td>valid_until</td>
+            <td>Date</td>
+            <td>No</td>
+            <td>Internal badge expiry date</td>
+          </tr>
+          <tr>
+            <td>Employee Photo</td>
+            <td>employee_photo</td>
+            <td>Image upload</td>
+            <td>Yes</td>
+            <td>Uploaded image passed to Photoshop</td>
+          </tr>
+          <tr>
+            <td>Signature Image</td>
+            <td>signature_image</td>
+            <td>Image upload</td>
+            <td>No</td>
+            <td>Uploaded signature image passed to Photoshop</td>
+          </tr>
+          <tr>
+            <td>Export Format</td>
+            <td>export_format</td>
+            <td>Select</td>
+            <td>Yes</td>
+            <td>PNG by default. Optional PDF/PSD for internal use.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Visual style</h3>
+      <ul>
+        <li>Use a clean internal admin-tool look.</li>
+        <li>Make the page feel like a production utility, not a public-facing identity-document maker.</li>
+        <li>Use cards, status chips, upload previews, and a clear job timeline.</li>
+        <li>Show a visible notice: “For internal company badge use only.”</li>
+      </ul>
+    </section>
+
+    <section id="data-model">
+      <h2>6. Data Model</h2>
+
+      <h3>Frontend job payload</h3>
+      <pre>{
+  "template": "EmployeeID.psd",
+  "employee_name": "",
+  "employee_id": "",
+  "department": "",
+  "role": "",
+  "valid_from": "",
+  "valid_until": "",
+  "export_format": "png",
+  "assets": {
+    "employee_photo_path": "",
+    "signature_image_path": ""
+  },
+  "meta": {
+    "created_from": "custom-tools/id-generator",
+    "intended_use": "internal_company_badge"
+  }
+}</pre>
+
+      <h3>Layer mapping concept</h3>
+      <p>
+        The frontend should not know all Photoshop internals. The local JSX script owns the final Photoshop layer mapping.
+        The frontend only sends structured values.
+      </p>
+
+      <pre>Frontend values
+  employee_name
+  employee_id
+  department
+  role
+  valid_from
+  valid_until
+  employee_photo
+  signature_image
+
+Local Photoshop JSX maps those values to:
+  Main PSD text layers
+  Smart Object image placeholders
+  Output export settings</pre>
+    </section>
+
+    <section id="supabase">
+      <h2>7. Supabase Setup</h2>
+
+      <h3>Create table: badge_jobs</h3>
+      <pre>create table if not exists badge_jobs (
+  id uuid primary key default gen_random_uuid(),
+  status text not null default 'queued',
+  template text not null default 'EmployeeID.psd',
+  input_json jsonb not null,
+  employee_photo_path text,
+  signature_image_path text,
+  output_png_path text,
+  output_pdf_path text,
+  output_psd_path text,
+  error_message text,
+  worker_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  started_at timestamptz,
+  completed_at timestamptz
+);</pre>
+
+      <h3>Status values</h3>
+      <pre>queued
+processing
+complete
+failed</pre>
+
+      <h3>Recommended security</h3>
+      <ul>
+        <li>Frontend can create jobs and upload input assets.</li>
+        <li>Frontend can only read its own job rows if authentication is used.</li>
+        <li>Only the local worker service key can claim jobs and upload outputs.</li>
+        <li>Do not expose the Supabase service role key in the frontend.</li>
+      </ul>
+    </section>
+
+    <section id="storage">
+      <h2>8. Supabase Storage Buckets</h2>
+
+      <h3>Recommended buckets</h3>
+      <pre>badge-inputs
+badge-outputs
+badge-templates</pre>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Bucket</th>
+            <th>Purpose</th>
+            <th>Access</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>badge-inputs</td>
+            <td>Uploaded employee photos, signatures, and job input files</td>
+            <td>Private, signed URLs only</td>
+          </tr>
+          <tr>
+            <td>badge-outputs</td>
+            <td>Final PNG/PDF/PSD results</td>
+            <td>Private, signed download URLs</td>
+          </tr>
+          <tr>
+            <td>badge-templates</td>
+            <td>Optional storage for EmployeeID.psd backup</td>
+            <td>Private, worker-only access</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        Best minimal version: keep <strong>EmployeeID.psd</strong> local on the Windows Photoshop machine and only store inputs/outputs in Supabase.
+      </div>
+    </section>
+
+    <section id="frontend">
+      <h2>9. Frontend Logic for the Figma Page</h2>
+
+      <h3>Frontend user flow</h3>
+      <ol>
+        <li>User opens <strong>Custom Tools → ID Generator</strong>.</li>
+        <li>User fills in employee badge fields.</li>
+        <li>User uploads employee photo and optional signature.</li>
+        <li>Frontend uploads assets to <code>badge-inputs</code>.</li>
+        <li>Frontend creates a row in <code>badge_jobs</code> with status <code>queued</code>.</li>
+        <li>Frontend starts polling that job row.</li>
+        <li>When status becomes <code>complete</code>, show preview and download buttons.</li>
+        <li>When status becomes <code>failed</code>, show a clean error message and job log.</li>
+      </ol>
+
+      <h3>Frontend pseudo-code</h3>
+      <pre>async function createBadgeJob(form) {
+  validateForm(form);
+
+  const photoPath = await uploadToSupabaseStorage("badge-inputs", form.employee_photo);
+  const signaturePath = form.signature_image
+    ? await uploadToSupabaseStorage("badge-inputs", form.signature_image)
+    : null;
+
+  const jobPayload = {
+    template: "EmployeeID.psd",
+    employee_name: form.employee_name,
+    employee_id: form.employee_id,
+    department: form.department,
+    role: form.role,
+    valid_from: form.valid_from,
+    valid_until: form.valid_until,
+    export_format: form.export_format || "png",
+    assets: {
+      employee_photo_path: photoPath,
+      signature_image_path: signaturePath
+    },
+    meta: {
+      created_from: "custom-tools/id-generator",
+      intended_use: "internal_company_badge"
+    }
+  };
+
+  const job = await supabase
+    .from("badge_jobs")
+    .insert({
+      status: "queued",
+      template: "EmployeeID.psd",
+      input_json: jobPayload,
+      employee_photo_path: photoPath,
+      signature_image_path: signaturePath
+    })
+    .select()
+    .single();
+
+  return job.data;
+}</pre>
+
+      <h3>Polling pseudo-code</h3>
+      <pre>async function pollJob(jobId) {
+  const interval = setInterval(async () => {
+    const job = await getBadgeJob(jobId);
+
+    updateStatusUI(job.status);
+
+    if (job.status === "complete") {
+      clearInterval(interval);
+      showOutput(job.output_png_path || job.output_pdf_path || job.output_psd_path);
+    }
+
+    if (job.status === "failed") {
+      clearInterval(interval);
+      showError(job.error_message);
+    }
+  }, 3000);
+}</pre>
+    </section>
+
+    <section id="local-worker">
+      <h2>10. Local Windows Worker Logic</h2>
+
+      <p>
+        The local worker is a small Node.js process running on the Windows machine where Photoshop and all required fonts are installed.
+      </p>
+
+      <h3>Worker folder structure</h3>
+      <pre>C:/EmployeeBadgeAutomation/
+├── worker.js
+├── run_employeeid_job.jsx
+├── templates/
+│   └── EmployeeID.psd
+├── fonts/
+│   ├── RequiredFont-Regular.otf
+│   └── RequiredFont-Bold.otf
+├── jobs/
+│   └── {job_id}/
+│       ├── input.json
+│       ├── photo.jpg
+│       └── signature.png
+└── output/
+    └── {job_id}/
+        ├── result.png
+        ├── result.pdf
+        └── result.psd</pre>
+
+      <h3>Worker flow</h3>
+      <ol>
+        <li>Start worker on Windows.</li>
+        <li>Connect to Supabase with service role key stored in local environment variables.</li>
+        <li>Poll for first job where status is <code>queued</code>.</li>
+        <li>Claim job by setting status to <code>processing</code>.</li>
+        <li>Download input assets to a local job folder.</li>
+        <li>Create local <code>input.json</code>.</li>
+        <li>Run Photoshop JSX script.</li>
+        <li>Upload exported file to Supabase Storage.</li>
+        <li>Update job status to <code>complete</code>.</li>
+        <li>If any error happens, set status to <code>failed</code> and save <code>error_message</code>.</li>
+      </ol>
+
+      <h3>Worker pseudo-code</h3>
+      <pre>while (true) {
+  const job = await getNextQueuedJob();
+
+  if (!job) {
+    await sleep(3000);
+    continue;
+  }
+
+  try {
+    await markJobProcessing(job.id);
+
+    await prepareLocalJobFolder(job);
+    await downloadJobAssets(job);
+    await writeInputJson(job);
+
+    await runPhotoshopScript(job.id);
+
+    const outputPath = await uploadOutputToSupabase(job.id);
+    await markJobComplete(job.id, outputPath);
+  } catch (error) {
+    await markJobFailed(job.id, error.message);
+  }
+}</pre>
+
+      <h3>Why polling is preferred</h3>
+      <ul>
+        <li>No public webhook to your local PC.</li>
+        <li>No firewall changes.</li>
+        <li>No ngrok dependency.</li>
+        <li>Stable even if your local IP changes.</li>
+        <li>Easier to restart if Photoshop crashes.</li>
+      </ul>
+    </section>
+
+    <section id="photoshop">
+      <h2>11. Photoshop JSX Automation</h2>
+
+      <p>
+        Photoshop automation should be separated from the website and cloud logic. The JSX script only receives a local job folder and does Photoshop work.
+      </p>
+
+      <h3>JSX responsibilities</h3>
+      <ul>
+        <li>Open <code>templates/EmployeeID.psd</code>.</li>
+        <li>Read <code>jobs/{job_id}/input.json</code>.</li>
+        <li>Preflight required fonts.</li>
+        <li>Update main PSD text layers.</li>
+        <li>Open Smart Objects where needed.</li>
+        <li>Replace or place uploaded images into the right placeholder layers.</li>
+        <li>Save Smart Object contents.</li>
+        <li>Export final PNG/PDF/PSD.</li>
+      </ul>
+
+      <h3>Safe layer mapping example</h3>
+      <pre>{
+  "main_text_layers": {
+    "EMPLOYEE_NAME": "employee_name",
+    "EMPLOYEE_ID": "employee_id",
+    "DEPARTMENT": "department",
+    "ROLE": "role",
+    "VALID_FROM": "valid_from",
+    "VALID_UNTIL": "valid_until"
+  },
+  "smart_object_images": {
+    "MAIN_PHOTO": {
+      "input": "employee_photo_path",
+      "internal_target_layer": "MAIN_IMAGE_1"
+    },
+    "SMALL_PHOTO": {
+      "input": "employee_photo_path",
+      "internal_target_layer": "SMALL_IMAGE_1"
+    },
+    "SIGNATURE": {
+      "input": "signature_image_path",
+      "internal_target_layer": "SIGNATURE_IMAGE_1"
+    }
+  }
+}</pre>
+
+      <div class="warning">
+        Keep the Photoshop mapping focused on internal company badge fields. Do not implement official document fields or security-document features.
+      </div>
+
+      <h3>JSX helper concepts</h3>
+      <pre>function setTextLayer(doc, layerName, value, postScriptFontName) {
+  // Find layer recursively by exact name
+  // Confirm it is a text layer
+  // Set textItem.contents
+  // Force textItem.font using PostScript font name
+}
+
+function updateSmartObjectImage(mainDoc, smartObjectLayerName, imageFile, internalLayerName) {
+  // Select Smart Object layer in main PSD
+  // Edit Smart Object contents
+  // Hide or replace existing internal target image layer
+  // Place uploaded image
+  // Fit/center image inside Smart Object canvas or mask
+  // Save and close Smart Object
+}
+
+function exportResult(doc, outputFormat, outputPath) {
+  // Export PNG/PDF/PSD according to requested format
+}</pre>
+    </section>
+
+    <section id="fonts">
+      <h2>12. Font Consistency Plan</h2>
+
+      <p>
+        The final export must be rendered by the local Photoshop worker only. Do not rely on the browser, Figma preview, or another user device for final typography.
+      </p>
+
+      <h3>Font rules</h3>
+      <ul>
+        <li>Install all required fonts on the local Photoshop machine.</li>
+        <li>Use exact PostScript font names in the JSX script.</li>
+        <li>Run font preflight before opening/exporting the PSD.</li>
+        <li>If a required font is missing, fail the job instead of exporting with placeholder fonts.</li>
+        <li>Force the correct font after every scripted text replacement.</li>
+      </ul>
+
+      <h3>Font manifest</h3>
+      <pre>{
+  "required_fonts": [
+    {
+      "label": "PRIMARY_REGULAR",
+      "postScriptName": "RequiredFont-Regular"
+    },
+    {
+      "label": "PRIMARY_BOLD",
+      "postScriptName": "RequiredFont-Bold"
+    }
+  ],
+  "layer_font_map": {
+    "EMPLOYEE_NAME": "PRIMARY_BOLD",
+    "EMPLOYEE_ID": "PRIMARY_REGULAR",
+    "DEPARTMENT": "PRIMARY_REGULAR",
+    "ROLE": "PRIMARY_REGULAR"
+  }
+}</pre>
+
+      <h3>Font preflight behavior</h3>
+      <pre>Before job export:
+1. Refresh Photoshop fonts
+2. Build installed font map
+3. Compare required PostScript names
+4. If missing font exists:
+   - stop job
+   - set job status to failed
+   - show exact missing font in error_message
+5. If all fonts exist:
+   - continue PSD generation</pre>
+    </section>
+
+    <section id="statuses">
+      <h2>13. Job Status UI</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>User-facing message</th>
+            <th>UI treatment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>queued</td>
+            <td>Your badge generation job is waiting for the local Photoshop worker.</td>
+            <td>Neutral chip</td>
+          </tr>
+          <tr>
+            <td>processing</td>
+            <td>Photoshop is generating the badge output.</td>
+            <td>Animated progress indicator</td>
+          </tr>
+          <tr>
+            <td>complete</td>
+            <td>Your badge output is ready.</td>
+            <td>Success chip + download buttons</td>
+          </tr>
+          <tr>
+            <td>failed</td>
+            <td>The generation job failed. Check the error details below.</td>
+            <td>Error chip + retry button</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Worker online indicator</h3>
+      <p>
+        Add a small status indicator at the top of the page. The local worker should update a heartbeat timestamp in Supabase every 15 to 30 seconds.
+      </p>
+
+      <pre>worker_heartbeat
+├── worker_id
+├── status
+├── last_seen_at
+└── current_job_id</pre>
+
+      <p>
+        If <code>last_seen_at</code> is older than 60 seconds, show:
+      </p>
+
+      <pre>Local Photoshop worker offline</pre>
+    </section>
+
+    <section id="errors">
+      <h2>14. Error Handling</h2>
+
+      <h3>Common errors to show clearly</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Error</th>
+            <th>Cause</th>
+            <th>User message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Missing font</td>
+            <td>Required font is not installed on local Photoshop machine</td>
+            <td>Generation stopped because a required font is missing.</td>
+          </tr>
+          <tr>
+            <td>Missing template</td>
+            <td>EmployeeID.psd not found locally</td>
+            <td>The local template file is missing on the worker machine.</td>
+          </tr>
+          <tr>
+            <td>Missing image</td>
+            <td>Upload failed or worker could not download asset</td>
+            <td>One of the uploaded images could not be downloaded.</td>
+          </tr>
+          <tr>
+            <td>Layer not found</td>
+            <td>PSD layer name changed or mapping is wrong</td>
+            <td>A required template layer could not be found.</td>
+          </tr>
+          <tr>
+            <td>Photoshop not responding</td>
+            <td>Photoshop crashed, froze, or scripting timed out</td>
+            <td>The local Photoshop worker did not complete the generation.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Retry logic</h3>
+      <ul>
+        <li>Allow retry only if job status is <code>failed</code>.</li>
+        <li>Retry should create a new job row or reset the existing job after clearing output paths.</li>
+        <li>Do not retry endlessly. Keep a maximum retry count of 2 or 3.</li>
+      </ul>
+    </section>
+
+    <section id="acceptance">
+      <h2>15. Acceptance Checklist</h2>
+
+      <h3>Figma / frontend checklist</h3>
+      <ul>
+        <li>Custom Tools has a third page called <strong>ID Generator</strong>.</li>
+        <li>The page subtitle clearly says it is for internal employee badge generation.</li>
+        <li>The form validates required fields before creating a job.</li>
+        <li>Photo upload preview works.</li>
+        <li>Signature upload preview works.</li>
+        <li>Generate button creates a Supabase job row.</li>
+        <li>Job status updates automatically.</li>
+        <li>Completed output can be previewed and downloaded.</li>
+        <li>Failed jobs show a useful error message.</li>
+      </ul>
+
+      <h3>Supabase checklist</h3>
+      <ul>
+        <li><code>badge_jobs</code> table exists.</li>
+        <li><code>badge-inputs</code> bucket exists.</li>
+        <li><code>badge-outputs</code> bucket exists.</li>
+        <li>Frontend cannot access service role secrets.</li>
+        <li>Local worker can claim and update jobs.</li>
+      </ul>
+
+      <h3>Local worker checklist</h3>
+      <ul>
+        <li>Worker runs on Windows machine with Photoshop installed.</li>
+        <li>Worker can poll Supabase.</li>
+        <li>Worker can download input assets.</li>
+        <li>Worker can launch Photoshop JSX script.</li>
+        <li>Worker can upload output.</li>
+        <li>Worker updates job to complete or failed.</li>
+      </ul>
+
+      <h3>Photoshop checklist</h3>
+      <ul>
+        <li><code>EmployeeID.psd</code> exists locally.</li>
+        <li>Required fonts are installed.</li>
+        <li>JSX can find all required main layers.</li>
+        <li>JSX can open and edit required Smart Objects.</li>
+        <li>JSX can place images correctly.</li>
+        <li>JSX exports a clean PNG or PDF.</li>
+      </ul>
+    </section>
+
+    <section id="figma-prompt">
+      <h2>16. Copy-Paste Prompt for Figma AI</h2>
+      <p>
+        Use this prompt to instruct Figma AI or a frontend builder to create the page.
+      </p>
+
+      <pre>Build a new third page under Custom Tools called “ID Generator”.
+
+This page is for internal company badge generation only. It should not be presented as a government ID, passport, driver license, KYC document, or official identity document generator.
+
+Navigation:
+Custom Tools
+- Existing Page 1
+- Existing Page 2
+- Page 3: ID Generator
+
+Route:
+custom-tools/id-generator
+
+Page title:
+ID Generator
+
+Page subtitle:
+Create internal employee badge outputs from the EmployeeID.psd Photoshop template.
+
+Build a clean admin-style interface with two main columns:
+
+Left column: Input Form
+- Template selector with default value: EmployeeID.psd
+- Employee Name text input
+- Employee ID text input
+- Department text input
+- Role text input
+- Valid From date input
+- Valid Until date input
+- Employee Photo upload
+- Signature Image upload
+- Export Format selector with PNG as default
+- Generate Badge button
+- Reset Form button
+
+Right column: Preview and Job Status
+- Draft summary card
+- Employee photo preview
+- Signature preview
+- Local Photoshop worker status indicator
+- Job status timeline
+- Result preview area
+- Download PNG button
+- Optional Download PDF/PSD buttons
+- Error message panel for failed jobs
+
+Bottom section:
+Recent Jobs table with:
+- Job ID
+- Status
+- Employee Name
+- Created At
+- Completed At
+- Output Link
+- Retry button for failed jobs
+
+Frontend behavior:
+1. Validate the form.
+2. Upload employee photo and signature image to Supabase Storage bucket badge-inputs.
+3. Create a row in Supabase table badge_jobs with status queued.
+4. Store the full input payload in input_json.
+5. Poll the badge_jobs row every 3 seconds.
+6. Show queued, processing, complete, or failed state.
+7. When complete, display final output from badge-outputs.
+8. When failed, display the error_message from the job row.
+
+Architecture:
+The Figma website does not edit PSD files directly. It only creates a job.
+A local Windows worker polls Supabase, downloads the job assets, runs Photoshop with a JSX script, exports the result, uploads it to Supabase, and updates the job row.
+
+Required safety UI copy:
+“For internal company badge use only. This tool does not create official identity documents.”
+
+Design style:
+- Clean dark admin interface
+- Modern cards
+- Clear labels
+- Strong status indicators
+- Professional but minimal
+- No official-government styling
+- No passport/driver-license/KYC wording
+- No MRZ, security-feature, hologram, or official-document sections</pre>
+    </section>
+
+    <section>
+      <h2>17. Final Implementation Order</h2>
+      <ol>
+        <li>Create the Figma page UI under Custom Tools as the third page.</li>
+        <li>Create Supabase project.</li>
+        <li>Create <code>badge_jobs</code> table.</li>
+        <li>Create <code>badge-inputs</code> and <code>badge-outputs</code> buckets.</li>
+        <li>Wire frontend form to Supabase upload and job creation.</li>
+        <li>Build the local Node.js worker.</li>
+        <li>Build the Photoshop JSX script.</li>
+        <li>Install required fonts on the local Photoshop machine.</li>
+        <li>Run a test job with one sample employee badge.</li>
+        <li>Add error logging and retry handling.</li>
+        <li>Lock down permissions and secrets.</li>
+        <li>Use PNG/PDF as final user-facing outputs.</li>
+      </ol>
+
+      <div class="safe-note">
+        <strong>Minimal production version:</strong> Figma-designed website + Supabase table/storage + local Node worker + Photoshop JSX. Build this first before adding advanced plugin features.
+      </div>
+    </section>
+
+    <div class="footer">
+      ID Generator build document for internal company badge automation. Keep output usage limited to legitimate internal company badge workflows.
+    </div>
+  </main>
+</body>
+</html>

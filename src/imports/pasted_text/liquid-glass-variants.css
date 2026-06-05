@@ -1,0 +1,129 @@
+You are working directly inside the existing Figma website editor.
+
+The current section already contains 3 cards:
+- Passport
+- ID Card
+- Custom Tools
+
+I want you to upgrade these 3 existing cards into a stronger experimental Apple iOS 26 Liquid Glass comparison.
+
+Important:
+The current effect is still too weak. I do not clearly see enough real glass-like color displacement, bending, and lens distortion. The next implementation must make the refraction much more visible.
+
+Core requirement:
+The glass effect must behave more like a real curved glass panel:
+- stronger color displacement
+- stronger background bending
+- stronger lens-like distortion
+- more visible transformation of the content behind the card
+- especially near the inner edges of the panel
+
+Edge behavior requirement:
+The strongest distortion zone should take up roughly 10% of the panel’s inner edge area around the perimeter.
+That means:
+- the center area of the card stays more readable and stable
+- the outer inner rim zone, around all sides and corners, becomes the main refraction zone
+- this inner edge zone should visibly bend, smear, and displace the colors/content behind it
+- the corners should feel the strongest, like a rounded lens
+
+Do not treat this as basic glassmorphism.
+It must feel like an actual glass lens panel placed over the background.
+
+Create 3 variants again, using the 3 existing cards as an experimental comparison:
+- Passport = Variant A
+- ID Card = Variant B
+- Custom Tools = Variant C
+
+Do not make them unrelated styles.
+They must all belong to the same Liquid Glass system, but with 3 different intensities:
+
+- Variant A = soft / low intensity
+- Variant B = balanced / medium intensity
+- Variant C = strong / high intensity
+
+Main visual goal:
+Each card should feel like a rounded rectangular Apple-style notification glass panel:
+- frosted readable center
+- visible blur and color pooling behind the card
+- clear lens distortion along the inner edges
+- strong curved bending at rounded corners
+- thin bright inner rim highlight on the upper and side edges
+- subtle darker lower edge / lower shadow to make the panel feel lifted
+- subtle chromatic color splitting or color bleed near the curved edges
+- background should feel transformed underneath the card surface
+
+Most important change from the previous attempt:
+Increase the visibility of the refractive behavior.
+Right now the cards do not show enough obvious displacement.
+I want a much stronger result where the edge zone clearly bends and shifts the background colors, similar to a real piece of curved glass.
+
+Implementation requirements:
+- Use backdrop-filter for blur, saturation, brightness, and contrast
+- Use an SVG displacement filter or equivalent refractive technique
+- Use pseudo-elements for rim highlight, edge glow, and chromatic edge treatment
+- Concentrate the strongest displacement in the inner edge band
+- Keep the center more stable so text remains readable
+- Include browser fallbacks where full displacement is not supported
+- Keep the implementation reusable and structured
+
+Create or update reusable components/classes:
+- LiquidGlassCard
+- LiquidGlassPanel
+- LiquidGlassButton
+
+Variant definitions:
+
+Variant A / Soft Liquid
+- Lowest intensity
+- Refraction is visible but restrained
+- Edge distortion is noticeable, but elegant
+- Light color displacement
+- Gentle lensing
+- Best for a subtle premium feel
+
+Variant B / Balanced Refraction
+- Medium intensity
+- Clearly visible liquid edge behavior
+- More obvious color displacement and background bending
+- Stronger lens effect in the 10% inner edge band
+- Good balance between visual impact and readability
+- This should feel like the most practical default option
+
+Variant C / Strong Crystal Glass
+- Highest intensity
+- Very visible color displacement and bending
+- Most pronounced lens distortion at edges and corners
+- Strongest sense of real curved glass
+- More dramatic chromatic edge activity
+- Still keep the center readable
+- This should be the boldest and clearest experimental version
+
+Visual system rules:
+- Keep the existing section layout, content, and hierarchy
+- Do not redesign the whole section
+- Only evolve the 3 cards into 3 stronger Liquid Glass variants
+- All 3 cards must still feel like the same design family
+- The main difference between them should be the intensity of the glass physics
+- The colorful background behind the cards must stay visible enough so the displacement can actually be seen
+
+Architecture requirement:
+Use semantic variants, for example:
+- variant="soft"
+- variant="balanced"
+- variant="strong"
+
+or:
+- .liquid-card--soft
+- .liquid-card--balanced
+- .liquid-card--strong
+
+Acceptance criteria:
+- The edge distortion is now clearly visible
+- Roughly 10% of the card’s inner edge area acts as the main refraction band
+- The center remains readable
+- The background is visibly bent and color-shifted by the glass
+- Variant A is subtle
+- Variant B is clearly visible and balanced
+- Variant C is the strongest and most glass-like
+- None of the cards look like plain blur-only glassmorphism
+- The cards feel closer to a real Apple Liquid Glass lens effect

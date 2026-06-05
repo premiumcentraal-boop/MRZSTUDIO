@@ -1,0 +1,16 @@
+{
+  "CODE": "123456789",
+  "DOCNMBR": "AB12C34D5",
+  "VALID": "14 JUN/JUN 2020",
+  "ENDVALID": "14 JUN/JUN 2030",
+  "BIRTHDATE": "14 JUN/JUN",
+  "YEAR": "1990",
+  "FIRST": "Mila",
+  "LAST": "De Vries",
+  "GENDER": "F/F",
+  "COUNTRY": "Nederlandse",
+  "CITYBIRTH": "Zoetermeer",
+  "LOCATION": "Burg. van Zoetermeer",
+  "HEIGHT": "1,72 m",
+  "MRZ": "I<NLDAB12C34D55<<<<<<<<<<<<<<<\n9006142F3006140NLD<<<<<<<<<<<8\nDE<VRIES<<MILA<<<<<<<<<<<<<<<"
+}

@@ -1,0 +1,319 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EmployeeID.psd Layer Map - Internal Employee Badge Studio Structure",
+  "description": "Defines all editable layers and Smart Objects in the EmployeeID.psd template. Matches the Internal Employee Badge Studio data model.",
+  "version": "2.0.0",
+  "template_file": "EmployeeID.psd",
+  "purpose": "Internal company badge generation only",
+
+  "text_layers": {
+    "first_name": {
+      "psd_layer_name": "FIRST",
+      "path": "BADGE_CONTENT/EMPLOYEE_INFO/FIRST",
+      "field": "first_name",
+      "required": true,
+      "max_length": 50,
+      "default_font": "Helvetica-Bold",
+      "default_size": 36,
+      "preserve_formatting": true,
+      "example": "Mila",
+      "description": "Employee first name"
+    },
+    "last_name": {
+      "psd_layer_name": "LAST",
+      "path": "BADGE_CONTENT/EMPLOYEE_INFO/LAST",
+      "field": "last_name",
+      "required": true,
+      "max_length": 50,
+      "default_font": "Helvetica-Bold",
+      "default_size": 36,
+      "preserve_formatting": true,
+      "example": "De Vries",
+      "description": "Employee last name"
+    },
+    "doc_number": {
+      "psd_layer_name": "DOCNMBR",
+      "path": "BADGE_CONTENT/DOCUMENT_INFO/DOCNMBR",
+      "field": "doc_number",
+      "required": true,
+      "max_length": 20,
+      "default_font": "Helvetica",
+      "default_size": 24,
+      "preserve_formatting": true,
+      "example": "AB12C34D5",
+      "description": "Internal document number"
+    },
+    "personal_number": {
+      "psd_layer_name": "CODE",
+      "path": "BADGE_CONTENT/EMPLOYEE_INFO/CODE",
+      "field": "personal_number",
+      "required": true,
+      "max_length": 20,
+      "default_font": "Helvetica",
+      "default_size": 20,
+      "preserve_formatting": true,
+      "example": "123456789",
+      "description": "Internal personal identifier"
+    },
+    "expires": {
+      "psd_layer_name": "ENDVALID",
+      "path": "BADGE_CONTENT/VALIDITY/ENDVALID",
+      "field": "expires",
+      "required": true,
+      "format": "MM/DD/YYYY",
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "06/14/2030",
+      "description": "Badge expiration date"
+    },
+    "valid_from": {
+      "psd_layer_name": "VALID",
+      "path": "BADGE_CONTENT/VALIDITY/VALID",
+      "field": "valid_from",
+      "required": true,
+      "format": "MM/DD/YYYY",
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "06/14/2020",
+      "description": "Badge validity start date"
+    },
+    "birth_date": {
+      "psd_layer_name": "BIRTHDATE",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/BIRTHDATE",
+      "field": "birth_date",
+      "required": true,
+      "format": "MM/DD/YYYY",
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "06/14/1990",
+      "description": "Employee birth date"
+    },
+    "birth_year": {
+      "psd_layer_name": "YEAR",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/YEAR",
+      "field": "birth_year",
+      "required": true,
+      "max_length": 4,
+      "default_font": "Helvetica",
+      "default_size": 18,
+      "preserve_formatting": true,
+      "example": "1990",
+      "description": "Birth year (auto-calculated from birth_date)"
+    },
+    "gender": {
+      "psd_layer_name": "GENDER",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/GENDER",
+      "field": "gender",
+      "required": true,
+      "max_length": 20,
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "Female",
+      "description": "Employee gender"
+    },
+    "height": {
+      "psd_layer_name": "HEIGHT",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/HEIGHT",
+      "field": "height",
+      "required": false,
+      "max_length": 20,
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "1,72 m",
+      "description": "Employee height"
+    },
+    "country_of_birth": {
+      "psd_layer_name": "COUNTRY",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/COUNTRY",
+      "field": "country_of_birth",
+      "required": false,
+      "max_length": 50,
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "Nederlandse",
+      "description": "Country of birth"
+    },
+    "city_of_birth": {
+      "psd_layer_name": "CITYBIRTH",
+      "path": "BADGE_CONTENT/PERSONAL_INFO/CITYBIRTH",
+      "field": "city_of_birth",
+      "required": false,
+      "max_length": 50,
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "Zoetermeer",
+      "description": "City of birth"
+    },
+    "company_location": {
+      "psd_layer_name": "LOCATION",
+      "path": "BADGE_CONTENT/COMPANY_INFO/LOCATION",
+      "field": "company_location",
+      "required": false,
+      "max_length": 50,
+      "default_font": "Helvetica",
+      "default_size": 14,
+      "preserve_formatting": true,
+      "example": "Burg. van Zoetermeer",
+      "description": "Company office location"
+    }
+  },
+
+  "smart_objects": {
+    "main_photo": {
+      "layer_path": "BADGE_CONTENT/PHOTOS/MAIN_PHOTO",
+      "field": "employee_photo_path",
+      "required": true,
+      "internal_document_name": "MAIN_PHOTO.psb",
+      "internal_target_layer": "PHOTO_LAYER",
+      "preserve_mask": true,
+      "preserve_position": true,
+      "preserve_effects": true,
+      "description": "Employee photo placeholder"
+    },
+    "signature": {
+      "layer_path": "BADGE_CONTENT/PHOTOS/SIGNATURE_AREA",
+      "field": "signature_image_path",
+      "required": false,
+      "internal_document_name": "SIGNATURE_AREA.psb",
+      "internal_target_layer": "SIGNATURE_LAYER",
+      "preserve_mask": true,
+      "preserve_position": true,
+      "preserve_effects": true,
+      "description": "Employee signature placeholder"
+    }
+  },
+
+  "preserve_groups": [
+    "BACKGROUND",
+    "BADGE_CONTENT/COMPANY_BRANDING",
+    "BADGE_CONTENT/DECORATIVE",
+    "OVERLAY"
+  ],
+
+  "required_fonts": [
+    {
+      "family": "Helvetica",
+      "postscript_name": "Helvetica",
+      "weight": "Regular",
+      "usage": "Body text, codes, dates"
+    },
+    {
+      "family": "Helvetica",
+      "postscript_name": "Helvetica-Bold",
+      "weight": "Bold",
+      "usage": "Employee name"
+    }
+  ],
+
+  "export_settings": {
+    "png": {
+      "format": "PNG",
+      "bit_depth": 24,
+      "transparency": false,
+      "resolution": 300,
+      "compression": "standard"
+    },
+    "pdf": {
+      "format": "PDF",
+      "preset": "High Quality Print",
+      "preserve_layers": true,
+      "color_mode": "RGB"
+    },
+    "psd": {
+      "format": "PSD",
+      "maximize_compatibility": true,
+      "preserve_layers": true
+    }
+  },
+
+  "validation_rules": {
+    "first_name": {
+      "required": true,
+      "min_length": 1,
+      "max_length": 50
+    },
+    "last_name": {
+      "required": true,
+      "min_length": 1,
+      "max_length": 50
+    },
+    "doc_number": {
+      "required": true,
+      "min_length": 1,
+      "max_length": 20
+    },
+    "personal_number": {
+      "required": true,
+      "min_length": 1,
+      "max_length": 20
+    },
+    "valid_from": {
+      "required": true,
+      "format": "date"
+    },
+    "expires": {
+      "required": true,
+      "format": "date"
+    },
+    "birth_date": {
+      "required": true,
+      "format": "date"
+    },
+    "birth_year": {
+      "required": true,
+      "pattern": "^\\d{4}$"
+    },
+    "gender": {
+      "required": true,
+      "max_length": 20
+    }
+  },
+
+  "safety_boundaries": {
+    "allowed_operations": [
+      "Update text contents via textItem.contents",
+      "Update internal company-card MRZ text layer",
+      "Update internal company-card PERFO smart object digits",
+      "Replace Smart Object contents with uploaded images",
+      "Save and close Smart Objects",
+      "Export PNG/PDF/PSD to output folder"
+    ],
+    "forbidden_operations": [
+      "Modify font family, size, color, or paragraph styles",
+      "Move, resize, or transform layers",
+      "Rasterize text or Smart Objects",
+      "Modify layer effects, blend modes, or opacity",
+      "Edit company branding or decorative elements",
+      "Add, delete, or rename layers",
+      "Save over original template",
+      "Flatten document",
+      "Add official document elements"
+    ],
+    "purpose": "Internal company badge generation only"
+  },
+
+  "psd_text_targets_mapping": {
+    "FIRST": "first_name",
+    "LAST": "last_name",
+    "DOCNMBR": "doc_number",
+    "CODE": "personal_number",
+    "ENDVALID": "expires",
+    "VALID": "valid_from",
+    "BIRTHDATE": "birth_date",
+    "YEAR": "birth_year",
+    "GENDER": "gender",
+    "HEIGHT": "height",
+    "COUNTRY": "country_of_birth",
+    "CITYBIRTH": "city_of_birth",
+    "LOCATION": "company_location",
+    "MRZ": "mrz",
+    "PERFO_STRING": "birth_month_plus_birth_year"
+  }
+}

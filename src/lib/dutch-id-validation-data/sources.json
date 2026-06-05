@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "0.1.0",
+  "accessedOn": "2026-06-01",
+  "sources": [
+    {
+      "id": "SRC-RVIG-DOCNUM-RULES",
+      "authority": "Rijksdienst voor Identiteitsgegevens (RvIG)",
+      "title": "Document number rules for Dutch passport and identity card",
+      "url": "https://www.rvig.nl/node/356",
+      "notes": "Universal layout: 9 chars, pos 1-2 letters, pos 3-8 letters/digits, pos 9 digit. Letter 'O' never used. Digit '0' not used in documents issued from 1 Dec 2019."
+    },
+    {
+      "id": "SRC-RVIG-ID-CARD-2021",
+      "authority": "Rijksdienst voor Identiteitsgegevens (RvIG)",
+      "title": "Kenmerken Nederlandse identiteitskaart 2021",
+      "url": "https://www.rvig.nl/kenmerken-identiteitskaart-2021",
+      "notes": "2021 ID card model introduced 2 Aug 2021. CAN number from 2021-01-04. BSN visible via QR / readable area."
+    },
+    {
+      "id": "SRC-RVIG-PASSPORT-2021",
+      "authority": "Rijksdienst voor Identiteitsgegevens (RvIG)",
+      "title": "Kenmerkenbrochure Nederlandse paspoorten 2021",
+      "url": "https://www.rvig.nl/kenmerken-paspoorten-2021",
+      "notes": "National passport model 2021 issued from 30 Aug 2021. Phased rollout of other models in November 2021."
+    },
+    {
+      "id": "SRC-RVIG-PASSPORT-2024",
+      "authority": "Rijksdienst voor Identiteitsgegevens (RvIG)",
+      "title": "Dutch passport model 2024",
+      "url": "https://www.rvig.nl/",
+      "notes": "Same RvIG document-number rules: pos 1-2 letters, no O, no 0, pos 9 digit 1-9. ICAO MRZ check digit unchanged."
+    },
+    {
+      "id": "SRC-ICAO-9303",
+      "authority": "International Civil Aviation Organization (ICAO)",
+      "title": "Doc 9303 — Machine Readable Travel Documents",
+      "url": "https://www.icao.int/publications/pages/publication.aspx?docnum=9303",
+      "notes": "TD1 (3x30) and TD3 (2x44) MRZ structure. Check digit weights [7,3,1]. '<' counts as 0, A-Z as 10-35, digits as themselves."
+    },
+    {
+      "id": "SRC-NL-BSN-ELFPROEF",
+      "authority": "Belastingdienst / RvIG",
+      "title": "BSN structure and elfproef",
+      "url": "https://www.rvig.nl/bsn",
+      "notes": "9 digits. Weights [9,8,7,6,5,4,3,2,-1]. Sum mod 11 = 0 and sum > 0."
+    },
+    {
+      "id": "SRC-NL-DRIVING-LICENCE-2025",
+      "authority": "Rijksdienst voor het Wegverkeer (RDW)",
+      "title": "Dutch driving licence model 2025",
+      "url": "https://www.rdw.nl/particulier/voertuigen/auto/de-apk/over-de-apk/het-rijbewijs",
+      "notes": "No public checksum is published for the driving licence number. Public validation is structure-only."
+    },
+    {
+      "id": "SRC-NL-DRIVING-LICENCE-MRZ",
+      "authority": "RDW",
+      "title": "Driving licence one-line MRZ public surface",
+      "url": "https://www.rdw.nl/",
+      "notes": "No publicly documented grammar for the full one-line MRZ. Treat as not_checked."
+    }
+  ]
+}

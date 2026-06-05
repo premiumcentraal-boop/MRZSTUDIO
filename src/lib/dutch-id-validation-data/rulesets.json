@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1.0",
+  "rulesets": {
+    "NL-PASSPORT-ID-VISIBLE-NUMBER-PRE-2019": {
+      "description": "Dutch passport/ID document number — 2014 model issued before 1 Dec 2019. 9 chars, pos 1-2 letters, no O. Digit 0 allowed.",
+      "structure": "^[A-NP-Z]{2}[A-NP-Z0-9]{6}[0-9]$",
+      "icaoMod10Required": true,
+      "checkDigitRange": "0-9",
+      "sourceIds": ["SRC-RVIG-DOCNUM-RULES"]
+    },
+    "NL-PASSPORT-ID-VISIBLE-NUMBER-POST-2019": {
+      "description": "Dutch passport/ID document number — 2014 from 1 Dec 2019, 2021 ID card, 2021/2024 passport. 9 chars, pos 1-2 letters, no O, no 0 anywhere, pos 9 digit 1-9.",
+      "structure": "^[A-NP-Z]{2}[A-NP-Z1-9]{6}[1-9]$",
+      "icaoMod10Required": true,
+      "checkDigitRange": "1-9",
+      "sourceIds": ["SRC-RVIG-DOCNUM-RULES", "SRC-RVIG-ID-CARD-2021", "SRC-RVIG-PASSPORT-2021", "SRC-RVIG-PASSPORT-2024"]
+    },
+    "NL-BSN-VISIBLE-DOCUMENT-11PROEF": {
+      "description": "Dutch BSN. 9 digits, weights [9,8,7,6,5,4,3,2,-1], sum mod 11 == 0, sum > 0.",
+      "structure": "^[0-9]{9}$",
+      "sourceIds": ["SRC-NL-BSN-ELFPROEF"]
+    },
+    "ICAO-MRZ-TD3": {
+      "description": "ICAO TD3 (passport) — 2 lines × 44 chars. Per-field check digits + composite check digit.",
+      "lineLength": 44,
+      "lineCount": 2,
+      "sourceIds": ["SRC-ICAO-9303"]
+    },
+    "ICAO-MRZ-TD1": {
+      "description": "ICAO TD1 (ID card) — 3 lines × 30 chars. Per-field check digits + composite check digit.",
+      "lineLength": 30,
+      "lineCount": 3,
+      "sourceIds": ["SRC-ICAO-9303"]
+    },
+    "NL-DRIVING-LICENCE-PUBLIC-SURFACE": {
+      "description": "Dutch driving licence — 10 character serial. No public checksum is published. Structure-only validation; deeper checks return not_checked.",
+      "structure": "^[0-9A-Z]{9,10}$",
+      "icaoMod10Required": false,
+      "publicChecksumKnown": false,
+      "sourceIds": ["SRC-NL-DRIVING-LICENCE-2025"]
+    }
+  }
+}

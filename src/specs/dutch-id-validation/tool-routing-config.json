@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "0.1.0",
+  "datePolicy": {
+    "modelSelectionDate": "issueDate",
+    "validityCheckDate": "expiryDate",
+    "warning": "Do not use expiry/validity date alone to select the model profile."
+  },
+  "families": [
+    {
+      "id": "passport",
+      "label": "Passport / travel document",
+      "documentTypes": [
+        "national_passport",
+        "business_passport",
+        "diplomatic_passport",
+        "service_passport",
+        "refugee_travel_document",
+        "alien_travel_document",
+        "emergency_passport",
+        "laissez_passer"
+      ],
+      "requiredInputs": ["documentType", "issueDate"],
+      "optionalInputs": ["visibleDocumentNumber", "bsn", "mrz", "expiryDate"],
+      "defaultPanels": ["ModelProfilePanel", "TravelDocumentNumberPanel", "MrzPanel", "SourceDrawer", "SafetyNotice"],
+      "mrzMode": "TD3",
+      "notes": ["Emergency passport and laissez-passer have unresolved first-letter prefix rules."]
+    },
+    {
+      "id": "identity_card",
+      "label": "Identity card",
+      "documentTypes": ["identity_card"],
+      "requiredInputs": ["documentType", "issueDate"],
+      "optionalInputs": ["visibleDocumentNumber", "bsn", "mrz", "expiryDate"],
+      "defaultPanels": ["ModelProfilePanel", "TravelDocumentNumberPanel", "MrzPanel", "SourceDrawer", "SafetyNotice"],
+      "mrzMode": "TD1",
+      "notes": ["CAN note applies from 2021-01-04 and later.", "BSN QR/readable placement applies from model 2021 and later."]
+    },
+    {
+      "id": "driving_licence",
+      "label": "Driving licence",
+      "documentTypes": ["ordinary_driving_licence"],
+      "requiredInputs": ["issueDate"],
+      "optionalInputs": [
+        "drivingLicenceNumber",
+        "bsn",
+        "drivingLicenceMrzLine",
+        "applicationDate",
+        "expiryDate",
+        "categories",
+        "holderAgeAtApplication"
+      ],
+      "defaultPanels": [
+        "ModelProfilePanel",
+        "DrivingLicenceNumberPanel",
+        "BsnPanel",
+        "DrivingLicenceMrzPanel",
+        "DrivingLicenceValidityPanel",
+        "SourceDrawer",
+        "SafetyNotice"
+      ],
+      "mrzMode": "one_line_public_surface_only",
+      "notes": ["No public driving licence number checksum is implemented.", "No public full one-line MRZ grammar is implemented."]
+    }
+  ],
+  "profileToPanels": {
+    "NL-PASSPORT-ID-VISIBLE-NUMBER": ["TravelDocumentNumberPanel"],
+    "ICAO-MRZ-TD1-TD2-TD3": ["MrzPanel"],
+    "NL-BSN-VISIBLE-DOCUMENT-11PROEF": ["BsnPanel"],
+    "NL-DRIVING-LICENCE-PUBLIC-SURFACE": ["DrivingLicenceNumberPanel", "DrivingLicenceMrzPanel", "DrivingLicenceValidityPanel"]
+  },
+  "statusDisplay": {
+    "valid": {
+      "label": "Public checks passed",
+      "tone": "success"
+    },
+    "invalid": {
+      "label": "A public rule failed",
+      "tone": "error"
+    },
+    "not_checked": {
+      "label": "Not fully checkable from public sources",
+      "tone": "warning"
+    }
+  }
+}

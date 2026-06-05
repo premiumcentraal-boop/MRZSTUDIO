@@ -1,0 +1,2118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MRZ Matrix Bootloader</title>
+  <style>
+    :root {
+      --bg: #030705;
+      --panel: rgba(7, 18, 15, 0.88);
+      --panel-solid: #07120f;
+      --panel-soft: rgba(17, 44, 37, 0.82);
+      --field: rgba(2, 10, 8, 0.92);
+      --line: rgba(92, 255, 194, 0.26);
+      --line-strong: rgba(92, 255, 194, 0.58);
+      --ink: #e9fff6;
+      --muted: #8db8aa;
+      --green: #5cffc2;
+      --green-deep: #0ba66e;
+      --cyan: #65d9ff;
+      --amber: #ffcc66;
+      --red: #ff6b7c;
+      --violet: #b18cff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(92, 255, 194, 0.16), transparent 34rem),
+        radial-gradient(circle at 92% 14%, rgba(101, 217, 255, 0.12), transparent 30rem),
+        radial-gradient(circle at 62% 96%, rgba(255, 204, 102, 0.08), transparent 22rem),
+        #030705;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 4px, 48px 48px;
+      mix-blend-mode: screen;
+      opacity: 0.42;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: linear-gradient(90deg, transparent, rgba(92, 255, 194, 0.1), transparent);
+      transform: translateX(-100%);
+      animation: sweep 8s linear infinite;
+      opacity: 0.52;
+    }
+
+    @keyframes sweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::after,
+      .loader-bar span,
+      .signal-dot {
+        animation: none !important;
+      }
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.52;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: var(--cyan);
+    }
+
+    .shell {
+      position: relative;
+      z-index: 2;
+      width: min(1240px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+    }
+
+    .boot-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .hero-panel,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(13, 34, 29, 0.88), rgba(2, 9, 7, 0.9));
+      box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+      padding: 24px;
+    }
+
+    .hero-panel::before {
+      content: "MRZ 9303 731 MOD10 TD3 TD1 SPECIMEN LOCAL";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 14px;
+      color: rgba(92, 255, 194, 0.14);
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: clamp(2rem, 8vw, 5.8rem);
+      line-height: 0.8;
+      white-space: nowrap;
+      transform: skewX(-8deg);
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 28px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255, 204, 102, 0.36);
+      border-radius: 999px;
+      color: var(--amber);
+      background: rgba(255, 204, 102, 0.08);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .signal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 12px var(--amber);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.45; transform: scale(0.86); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin-top: 18px;
+      max-width: 760px;
+      font-size: clamp(2.4rem, 7vw, 5.8rem);
+      line-height: 0.85;
+      text-transform: uppercase;
+      text-shadow: 0 0 26px rgba(92, 255, 194, 0.28);
+    }
+
+    .subtitle {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .boot-card {
+      display: grid;
+      align-content: space-between;
+      gap: 16px;
+      padding: 18px;
+      min-height: 210px;
+    }
+
+    .boot-readout {
+      display: grid;
+      gap: 9px;
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--green);
+      font-size: 0.84rem;
+    }
+
+    .boot-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(92, 255, 194, 0.13);
+      padding-bottom: 8px;
+    }
+
+    .boot-row span:last-child {
+      color: var(--cyan);
+    }
+
+    .loader-bar {
+      overflow: hidden;
+      height: 8px;
+      border: 1px solid rgba(92, 255, 194, 0.42);
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .loader-bar span {
+      display: block;
+      width: 42%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--green), var(--cyan), transparent);
+      animation: loadbar 2.8s ease-in-out infinite;
+    }
+
+    @keyframes loadbar {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(260%); }
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .panel-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .preset-card {
+      min-height: 132px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      border: 1px solid rgba(92, 255, 194, 0.2);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(92, 255, 194, 0.1), transparent 42%),
+        rgba(1, 10, 8, 0.84);
+      color: var(--ink);
+      text-align: left;
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    .preset-card:hover,
+    .preset-card:focus-visible,
+    .preset-card[aria-pressed="true"] {
+      outline: none;
+      transform: translateY(-2px);
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 3px rgba(92, 255, 194, 0.09), 0 16px 38px rgba(0, 0, 0, 0.32);
+    }
+
+    .preset-card[aria-pressed="true"] {
+      background:
+        linear-gradient(135deg, rgba(92, 255, 194, 0.2), transparent 48%),
+        rgba(4, 26, 20, 0.94);
+    }
+
+    .preset-card strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.16;
+    }
+
+    .preset-code {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip,
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(92, 255, 194, 0.25);
+      background: rgba(92, 255, 194, 0.08);
+      color: var(--green);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .chip.cyan {
+      color: var(--cyan);
+      border-color: rgba(101, 217, 255, 0.3);
+      background: rgba(101, 217, 255, 0.08);
+    }
+
+    .chip.amber {
+      color: var(--amber);
+      border-color: rgba(255, 204, 102, 0.34);
+      background: rgba(255, 204, 102, 0.08);
+    }
+
+    .preset-card small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 430px;
+      gap: 16px;
+      align-items: start;
+      margin-top: 16px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: repeat(2, 1fr);
+      min-width: 290px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid rgba(92, 255, 194, 0.25);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .segmented button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: var(--bg);
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      font-weight: 800;
+    }
+
+    .section {
+      display: grid;
+      gap: 14px;
+    }
+
+    .section + .section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(92, 255, 194, 0.16);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--green);
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .form-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #c7f7e8;
+      font-size: 0.86rem;
+      font-weight: 750;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(92, 255, 194, 0.22);
+      border-radius: 7px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 9px 11px;
+      outline: none;
+      transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    select {
+      color: var(--ink);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(92, 255, 194, 0.13), 0 0 18px rgba(92, 255, 194, 0.12);
+      background: rgba(4, 20, 16, 0.96);
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      border: 1px solid rgba(92, 255, 194, 0.3);
+      border-radius: 7px;
+      padding: 9px 13px;
+      color: var(--ink);
+      background: rgba(3, 20, 16, 0.9);
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      outline: none;
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 3px rgba(92, 255, 194, 0.1);
+    }
+
+    .button.primary {
+      color: #00120d;
+      border-color: transparent;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      font-weight: 850;
+    }
+
+    .button.secondary {
+      color: var(--cyan);
+      border-color: rgba(101, 217, 255, 0.32);
+      background: rgba(101, 217, 255, 0.08);
+    }
+
+    .button.compact {
+      min-height: 34px;
+      padding: 7px 10px;
+      font-size: 0.85rem;
+    }
+
+    .output-wrap {
+      position: sticky;
+      top: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid rgba(92, 255, 194, 0.16);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.24);
+    }
+
+    .summary-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .summary-title strong {
+      color: var(--green);
+      text-align: right;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .summary-item {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .summary-item strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.88rem;
+    }
+
+    .mrz-box {
+      padding: 14px;
+      border: 1px solid rgba(92, 255, 194, 0.32);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(92, 255, 194, 0.08), transparent),
+        rgba(0, 0, 0, 0.58);
+    }
+
+    .mrz {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid rgba(92, 255, 194, 0.2);
+      border-radius: 6px;
+      background: #000907;
+      color: #caffef;
+      font-family: "OCR B", "OCRB", "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: clamp(1rem, 2vw, 1.28rem);
+      line-height: 1.45;
+      letter-spacing: 0;
+      text-shadow: 0 0 10px rgba(92, 255, 194, 0.48);
+      white-space: pre;
+    }
+
+    .lengths {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .badge.ok {
+      color: var(--green);
+      border-color: rgba(92, 255, 194, 0.34);
+    }
+
+    .badge.warn {
+      color: var(--red);
+      border-color: rgba(255, 107, 124, 0.36);
+      background: rgba(255, 107, 124, 0.09);
+    }
+
+    .warning-list {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .warning-list:empty {
+      display: none;
+    }
+
+    .warning-list li {
+      padding: 9px 10px;
+      border: 1px solid rgba(255, 204, 102, 0.36);
+      border-radius: 7px;
+      background: rgba(255, 204, 102, 0.09);
+      color: #ffe3a3;
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .checks {
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checks li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(92, 255, 194, 0.14);
+    }
+
+    .checks li:last-child {
+      border-bottom: 0;
+    }
+
+    .check-name {
+      color: #d4fff1;
+      font-size: 0.88rem;
+    }
+
+    .check-value {
+      min-width: 30px;
+      min-height: 30px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid rgba(92, 255, 194, 0.28);
+      border-radius: 6px;
+      background: rgba(92, 255, 194, 0.08);
+      color: var(--green);
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 900;
+    }
+
+    .calc {
+      display: grid;
+      gap: 12px;
+    }
+
+    .calc-result {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border: 1px solid rgba(101, 217, 255, 0.28);
+      border-radius: 7px;
+      background: rgba(101, 217, 255, 0.08);
+      color: #d8f6ff;
+      font-size: 0.86rem;
+    }
+
+    .calc-result strong {
+      color: var(--cyan);
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 1.5rem;
+    }
+
+    footer {
+      display: grid;
+      gap: 6px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .quick-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quick-actions .button {
+      width: 100%;
+    }
+
+    .quick-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .hero-panel {
+      min-height: 170px;
+    }
+
+    .hero-panel::before {
+      opacity: 0.42;
+    }
+
+    .boot-card {
+      min-height: 170px;
+    }
+
+    .preset-grid {
+      grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+    }
+
+    .preset-card {
+      min-height: 104px;
+      gap: 8px;
+    }
+
+    .preset-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preset-emoji {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 1.05rem;
+      flex: 0 0 auto;
+    }
+
+    .mini-disclosure {
+      margin-top: 12px;
+      border: 1px solid rgba(92, 255, 194, 0.16);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .mini-disclosure summary {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .mini-disclosure .checks,
+    .mini-disclosure .calc {
+      padding: 0 12px 12px;
+    }
+
+    .backend-panel {
+      margin-top: 16px;
+    }
+
+    .backend-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .backend-box {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .backend-box h3 {
+      margin: 0;
+      color: var(--green);
+      font-size: 0.95rem;
+    }
+
+    .logic-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .logic-card {
+      border: 1px solid rgba(92, 255, 194, 0.18);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .logic-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 8px;
+    }
+
+    .logic-card h4 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .logic-card pre {
+      overflow-x: auto;
+      margin: 8px 0 0;
+      padding: 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #caffef;
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .formula {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .formula strong {
+      color: var(--ink);
+    }
+
+    .char-steps {
+      margin-top: 8px;
+      color: #bcefe0;
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.74rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .ios-note {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 204, 102, 0.24);
+      border-radius: 8px;
+      color: #ffe3a3;
+      background: rgba(255, 204, 102, 0.07);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1040px) {
+      .boot-hero,
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .output-wrap {
+        position: static;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .shell {
+        width: min(100% - 18px, 1240px);
+        padding-top: 12px;
+      }
+
+      .hero-panel,
+      .panel,
+      .boot-card {
+        padding: 14px;
+      }
+
+      .panel-head,
+      .summary-title {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .preset-grid,
+      .form-grid,
+      .form-grid.three,
+      .summary-grid,
+      .backend-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .segmented {
+        min-width: 0;
+        width: 100%;
+      }
+
+      h1 {
+        font-size: clamp(2.2rem, 14vw, 4rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix-canvas" aria-hidden="true"></canvas>
+  <main class="shell">
+    <section class="boot-hero" aria-labelledby="page-title">
+      <div class="hero-panel">
+        <span class="kicker"><span class="signal-dot" aria-hidden="true"></span>Local specimen studio</span>
+        <h1 id="page-title">MRZ Studio</h1>
+        <p class="subtitle">Choose a preset, edit the details, copy the MRZ. The math stays hidden until you open the backend.</p>
+      </div>
+      <aside class="panel boot-card" aria-label="Boot status">
+        <div class="quick-actions">
+          <button class="button primary" type="button" id="backend-toggle" aria-controls="backend-panel" aria-expanded="false">🧠 Open backend</button>
+          <button class="button secondary" type="button" id="sample-button">🧪 ICAO sample</button>
+          <p class="quick-note">Offline, one file, specimen data only.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel" aria-labelledby="template-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="template-title">Start</h2>
+          <p>Pick a document shape. You can edit everything after.</p>
+        </div>
+        <button class="button secondary compact" type="button" id="backend-toggle-small" aria-controls="backend-panel" aria-expanded="false">⚙️ Logic</button>
+      </div>
+      <div class="preset-grid" id="template-grid"></div>
+    </section>
+
+    <div class="main-grid">
+      <section class="panel" aria-labelledby="input-title">
+        <div class="topline">
+          <h2 id="input-title">Edit</h2>
+          <div class="segmented" role="group" aria-label="MRZ format">
+            <button type="button" data-switch="td3" aria-pressed="true">🛂 Passport</button>
+            <button type="button" data-switch="td1" aria-pressed="false">💳 ID card</button>
+          </div>
+        </div>
+
+        <form id="mrz-form" autocomplete="off">
+          <div class="format-fields" data-panel="td3">
+            <div class="section">
+              <div class="section-title">Document Core</div>
+              <div class="form-grid three">
+                <div class="field">
+                  <label for="td3-document-code">Document code</label>
+                  <input id="td3-document-code" data-field="td3.documentCode" value="PP" maxlength="2" inputmode="text">
+                  <div class="help">TD3 passport codes should start with P.</div>
+                </div>
+                <div class="field">
+                  <label for="td3-issuer">Issuing state</label>
+                  <input id="td3-issuer" data-field="td3.issuer" value="UTO" maxlength="3" inputmode="text">
+                  <div class="help">Examples: D, NLD, GBR, USA.</div>
+                </div>
+                <div class="field">
+                  <label for="td3-number">Passport number</label>
+                  <input id="td3-number" data-field="td3.number" value="L898902C3" inputmode="text">
+                  <div class="help">Up to 9 MRZ characters.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Holder</div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="td3-surname">Surname</label>
+                  <input id="td3-surname" data-field="td3.surname" value="ERIKSSON">
+                </div>
+                <div class="field">
+                  <label for="td3-given">Given names</label>
+                  <input id="td3-given" data-field="td3.given" value="ANNA MARIA">
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Life Cycle</div>
+              <div class="form-grid three">
+                <div class="field">
+                  <label for="td3-nationality">Nationality</label>
+                  <input id="td3-nationality" data-field="td3.nationality" value="UTO" maxlength="3">
+                </div>
+                <div class="field">
+                  <label for="td3-birth">Date of birth</label>
+                  <input id="td3-birth" data-field="td3.birth" value="1974-08-12" type="date">
+                </div>
+                <div class="field">
+                  <label for="td3-sex">Sex</label>
+                  <select id="td3-sex" data-field="td3.sex">
+                    <option value="F" selected>F</option>
+                    <option value="M">M</option>
+                    <option value="<">&lt;</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="td3-expiry">Date of expiry</label>
+                  <input id="td3-expiry" data-field="td3.expiry" value="2034-04-15" type="date">
+                </div>
+                <div class="field full">
+                  <label for="td3-personal">Personal number or optional data</label>
+                  <input id="td3-personal" data-field="td3.personal" value="ZE184226B">
+                  <div class="help">Up to 14 MRZ characters. Empty space becomes filler.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="format-fields" data-panel="td1" hidden>
+            <div class="section">
+              <div class="section-title">Document Core</div>
+              <div class="form-grid three">
+                <div class="field">
+                  <label for="td1-document-code">Document code</label>
+                  <input id="td1-document-code" data-field="td1.documentCode" value="I&lt;" maxlength="2" inputmode="text">
+                  <div class="help">TD1 codes should start with A, C, or I.</div>
+                </div>
+                <div class="field">
+                  <label for="td1-issuer">Issuing state</label>
+                  <input id="td1-issuer" data-field="td1.issuer" value="UTO" maxlength="3" inputmode="text">
+                </div>
+                <div class="field">
+                  <label for="td1-number">Document number</label>
+                  <input id="td1-number" data-field="td1.number" value="D23145890" inputmode="text">
+                  <div class="help">Long numbers continue in optional line 1.</div>
+                </div>
+                <div class="field">
+                  <label for="td1-optional1">Optional data line 1</label>
+                  <input id="td1-optional1" data-field="td1.optional1" value="">
+                  <div class="help">Reserved automatically for long document numbers.</div>
+                </div>
+                <div class="field">
+                  <label for="td1-optional2">Optional data line 2</label>
+                  <input id="td1-optional2" data-field="td1.optional2" value="">
+                  <div class="help">Up to 11 MRZ characters.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Holder</div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="td1-surname">Surname</label>
+                  <input id="td1-surname" data-field="td1.surname" value="ERIKSSON">
+                </div>
+                <div class="field">
+                  <label for="td1-given">Given names</label>
+                  <input id="td1-given" data-field="td1.given" value="ANNA MARIA">
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Life Cycle</div>
+              <div class="form-grid three">
+                <div class="field">
+                  <label for="td1-nationality">Nationality</label>
+                  <input id="td1-nationality" data-field="td1.nationality" value="UTO" maxlength="3">
+                </div>
+                <div class="field">
+                  <label for="td1-birth">Date of birth</label>
+                  <input id="td1-birth" data-field="td1.birth" value="1974-08-12" type="date">
+                </div>
+                <div class="field">
+                  <label for="td1-sex">Sex</label>
+                  <select id="td1-sex" data-field="td1.sex">
+                    <option value="F" selected>F</option>
+                    <option value="M">M</option>
+                    <option value="<">&lt;</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="td1-expiry">Date of expiry</label>
+                  <input id="td1-expiry" data-field="td1.expiry" value="2012-04-15" type="date">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="button primary" type="button" id="copy-button">📋 Copy</button>
+            <button class="button secondary" type="button" id="download-button">⬇️ TXT</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="output-wrap">
+        <section class="panel" aria-labelledby="output-title">
+          <div class="topline">
+            <h2 id="output-title">MRZ</h2>
+            <span class="badge" id="format-badge">TD3</span>
+          </div>
+          <div class="summary">
+            <div class="summary-title">
+              <span>Active preset</span>
+              <strong id="active-template-name">ICAO passport example</strong>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span>Codes</span>
+                <strong id="summary-country">UTO / UTO</strong>
+              </div>
+              <div class="summary-item">
+                <span>Type</span>
+                <strong id="summary-document">PP TD3</strong>
+              </div>
+              <div class="summary-item">
+                <span>Holder</span>
+                <strong id="summary-holder">ERIKSSON</strong>
+              </div>
+            </div>
+          </div>
+          <div class="mrz-box">
+            <pre class="mrz" id="mrz-output" aria-live="polite"></pre>
+            <div class="lengths" id="line-lengths"></div>
+          </div>
+          <ul class="warning-list" id="warnings"></ul>
+
+          <details class="mini-disclosure">
+            <summary>🧮 Check digits</summary>
+            <ul class="checks" id="checks"></ul>
+          </details>
+
+          <details class="mini-disclosure">
+            <summary>🔢 Manual check</summary>
+            <div class="calc">
+              <div class="field">
+                <label for="calc-input">MRZ field</label>
+                <input id="calc-input" value="AB2134&lt;&lt;&lt;" inputmode="text">
+              </div>
+              <div class="calc-result" id="calc-result"></div>
+            </div>
+          </details>
+        </section>
+      </aside>
+    </div>
+
+    <section class="panel backend-panel" id="backend-panel" aria-labelledby="backend-title" hidden>
+      <div class="panel-head">
+        <div>
+          <h2 id="backend-title">Backend</h2>
+          <p>Full MRZ logic, weighted sums, and preset outputs.</p>
+        </div>
+        <button class="button secondary compact" type="button" id="backend-close">✕ Close</button>
+      </div>
+      <div class="backend-grid">
+        <div class="backend-box">
+          <h3>Current calculation</h3>
+          <div class="logic-list" id="backend-current"></div>
+        </div>
+        <div class="backend-box">
+          <h3>Preset logic</h3>
+          <div class="logic-list" id="backend-presets"></div>
+        </div>
+      </div>
+      <div class="ios-note">Algorithm: MRZ characters are converted to values, multiplied by repeating weights 7, 3, 1, summed, then reduced modulo 10.</div>
+    </section>
+
+    <footer>
+      <details class="mini-disclosure">
+        <summary>ℹ️ Notes</summary>
+        <div class="ios-note">This creates specimen MRZ strings for testing and education. It does not issue, verify, or authenticate an identity document. UK and USA TD1 entries are specimen ID-style templates; actual document availability and national optional-data rules vary.</div>
+      </details>
+    </footer>
+  </main>
+
+  <script>
+    const state = {
+      format: "td3",
+      activeTemplate: "de-passport-2018"
+    };
+
+    const icaoSamples = {
+      "icao-td3": {
+        label: "ICAO passport sample",
+        country: "Specimen",
+        format: "td3",
+        code: "UTO",
+        fields: {
+          documentCode: "PP",
+          issuer: "UTO",
+          number: "L898902C3",
+          surname: "ERIKSSON",
+          given: "ANNA MARIA",
+          nationality: "UTO",
+          birth: "1974-08-12",
+          sex: "F",
+          expiry: "2034-04-15",
+          personal: "ZE184226B"
+        }
+      },
+      "icao-td1": {
+        label: "ICAO ID sample",
+        country: "Specimen",
+        format: "td1",
+        code: "UTO",
+        fields: {
+          documentCode: "I<",
+          issuer: "UTO",
+          number: "D23145890",
+          optional1: "",
+          optional2: "",
+          surname: "ERIKSSON",
+          given: "ANNA MARIA",
+          nationality: "UTO",
+          birth: "1974-08-12",
+          sex: "F",
+          expiry: "2012-04-15"
+        }
+      }
+    };
+
+    const countryPresets = [
+      {
+        id: "de",
+        country: "Germany",
+        code: "D",
+        passportLabel: "Germany passport PP specimen",
+        passport: ["C01X00T47", "MUSTERMANN", "ERIKA", "1964-08-12", "F", "2034-10-31"],
+        idCard: ["L01X00T47", "MUSTERMANN", "ERIKA", "1964-08-12", "F", "2034-10-31"]
+      },
+      {
+        id: "nl",
+        country: "Netherlands",
+        code: "NLD",
+        passport: ["NX1234567", "DE VRIES", "MILA SOFIE", "1990-06-14", "F", "2034-06-14"],
+        idCard: ["NI1234567", "JANSEN", "NOAH", "1992-11-05", "M", "2032-11-05"]
+      },
+      {
+        id: "uk",
+        country: "United Kingdom",
+        code: "GBR",
+        passport: ["GB1234567", "WILSON", "AMELIA ROSE", "1988-03-21", "F", "2033-03-21"],
+        idCard: ["UK1234567", "TAYLOR", "OLIVER JAMES", "1995-09-17", "M", "2030-09-17"]
+      },
+      {
+        id: "us",
+        country: "United States",
+        code: "USA",
+        passport: ["X12345678", "JOHNSON", "AVA MARIE", "1991-12-03", "F", "2034-12-03"],
+        idCard: ["US1234567", "MILLER", "ETHAN", "1987-05-24", "M", "2032-05-24"]
+      }
+    ];
+
+    function makeTemplate(country, kind) {
+      const isPassport = kind === "passport";
+      const [number, surname, given, birth, sex, expiry] = isPassport ? country.passport : country.idCard;
+      return {
+        label: isPassport ? (country.passportLabel || `${country.country} passport`) : `${country.country} ID specimen`,
+        country: country.country,
+        format: isPassport ? "td3" : "td1",
+        code: country.code,
+        fields: isPassport ? {
+          documentCode: country.passportDocumentCode || "PP",
+          issuer: country.code,
+          number,
+          surname,
+          given,
+          nationality: country.code,
+          birth,
+          sex,
+          expiry,
+          personal: ""
+        } : {
+          documentCode: "ID",
+          issuer: country.code,
+          number,
+          optional1: "",
+          optional2: "",
+          surname,
+          given,
+          nationality: country.code,
+          birth,
+          sex,
+          expiry
+        }
+      };
+    }
+
+    const specialPresets = {
+      "de-passport-2018": {
+        label: "Germany passport 2018",
+        country: "Germany",
+        format: "td3",
+        code: "D",
+        fields: {
+          documentCode: "P<",
+          issuer: "D",
+          number: "H3YFN31WN",
+          surname: "VICK",
+          given: "JOHN",
+          nationality: "D",
+          birth: "1964-09-02",
+          sex: "M",
+          expiry: "2028-01-29",
+          personal: ""
+        }
+      },
+      "nl-id-2020": {
+        label: "Netherlands ID 2020",
+        country: "Netherlands",
+        format: "td1",
+        code: "NLD",
+        fields: {
+          documentCode: "I<",
+          issuer: "NLD",
+          number: "NI2020X01",
+          optional1: "",
+          optional2: "",
+          surname: "DE VRIES",
+          given: "MILA SOFIE",
+          nationality: "NLD",
+          birth: "1990-06-14",
+          sex: "F",
+          expiry: "2030-06-14"
+        }
+      }
+    };
+
+    const presetOrder = [
+      "de-passport-2018",
+      "nl-id-2020",
+      ...countryPresets.flatMap((country) => [`${country.id}-passport`, `${country.id}-id`])
+    ];
+
+    const templates = {
+      ...icaoSamples,
+      ...specialPresets,
+      ...Object.fromEntries(
+        countryPresets.flatMap((country) => [
+          [`${country.id}-passport`, makeTemplate(country, "passport")],
+          [`${country.id}-id`, makeTemplate(country, "id")]
+        ])
+      )
+    };
+
+    const transliteration = {
+      "\u00C4": "AE",
+      "\u00C5": "AA",
+      "\u00C6": "AE",
+      "\u00C7": "C",
+      "\u00D0": "D",
+      "\u00C9": "E",
+      "\u00D1": "N",
+      "\u00D6": "OE",
+      "\u00D8": "OE",
+      "\u00DE": "TH",
+      "\u00DC": "UE",
+      "\u1E9E": "SS",
+      "\u00DF": "SS",
+      "\u0152": "OE"
+    };
+
+    const fieldEls = Array.from(document.querySelectorAll("[data-field]"));
+    const panels = Array.from(document.querySelectorAll("[data-panel]"));
+    const switchButtons = Array.from(document.querySelectorAll("[data-switch]"));
+    const templateGrid = document.getElementById("template-grid");
+    const outputEl = document.getElementById("mrz-output");
+    const checksEl = document.getElementById("checks");
+    const lengthsEl = document.getElementById("line-lengths");
+    const warningsEl = document.getElementById("warnings");
+    const formatBadgeEl = document.getElementById("format-badge");
+    const activeTemplateNameEl = document.getElementById("active-template-name");
+    const summaryCountryEl = document.getElementById("summary-country");
+    const summaryDocumentEl = document.getElementById("summary-document");
+    const summaryHolderEl = document.getElementById("summary-holder");
+    const calcInputEl = document.getElementById("calc-input");
+    const calcResultEl = document.getElementById("calc-result");
+    const copyButton = document.getElementById("copy-button");
+    const downloadButton = document.getElementById("download-button");
+    const sampleButton = document.getElementById("sample-button");
+    const backendPanel = document.getElementById("backend-panel");
+    const backendToggle = document.getElementById("backend-toggle");
+    const backendToggleSmall = document.getElementById("backend-toggle-small");
+    const backendClose = document.getElementById("backend-close");
+    const backendCurrentEl = document.getElementById("backend-current");
+    const backendPresetsEl = document.getElementById("backend-presets");
+    const matrixCanvas = document.getElementById("matrix-canvas");
+
+    const presetEmoji = {
+      "de-passport-2018": "🛂",
+      "nl-id-2020": "💳",
+      de: "🇩🇪",
+      nl: "🇳🇱",
+      uk: "🇬🇧",
+      us: "🇺🇸"
+    };
+
+    function normalizeText(value) {
+      return Array.from(String(value || "").trim().toUpperCase())
+        .map((char) => transliteration[char] || char)
+        .join("")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function cleanField(value) {
+      return normalizeText(value)
+        .replace(/[\s\-.,'`/\\]+/g, "<")
+        .replace(/[^A-Z0-9<]/g, "<");
+    }
+
+    function fixed(value, length) {
+      return cleanField(value).slice(0, length).padEnd(length, "<");
+    }
+
+    function code(value, length, fallback) {
+      const cleaned = fixed(value || fallback, length);
+      return cleaned.padEnd(length, "<").slice(0, length);
+    }
+
+    function dateToYYMMDD(value) {
+      const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return "<<<<<<";
+      return `${match[1].slice(2)}${match[2]}${match[3]}`;
+    }
+
+    function cleanSex(value) {
+      const sex = String(value || "<").toUpperCase();
+      return sex === "F" || sex === "M" ? sex : "<";
+    }
+
+    function cleanNameComponent(value) {
+      return normalizeText(value)
+        .replace(/[\'`\u2018\u2019]/g, "")
+        .replace(/[-,\s\u2010-\u2015]+/g, "<")
+        .replace(/[^A-Z<]/g, "")
+        .replace(/<+/g, "<")
+        .replace(/^<|<$/g, "");
+    }
+
+    function fitName(body, length) {
+      if (body.length <= length) return body.padEnd(length, "<");
+      const chars = body.split("");
+      let guard = 0;
+      while ((chars.length > length || chars[length - 1] === "<") && guard < 200) {
+        const limit = Math.min(chars.length - 1, length - 1);
+        let removable = -1;
+        for (let index = limit; index >= 0; index -= 1) {
+          if (chars[index] === "<") {
+            removable = index;
+            break;
+          }
+        }
+        if (removable === -1) break;
+        chars.splice(removable, 1);
+        guard += 1;
+      }
+      let fitted = chars.join("").slice(0, length);
+      if (fitted.length < length) fitted = fitted.padEnd(length, "<");
+      if (fitted[length - 1] === "<") {
+        fitted = body.replace(/</g, "").slice(0, length).padEnd(length, "<");
+      }
+      return fitted;
+    }
+
+    function nameField(surname, given, length) {
+      const primary = cleanNameComponent(surname) || "SPECIMEN";
+      const secondary = cleanNameComponent(given);
+      const body = secondary ? `${primary}<<${secondary}` : primary;
+      return fitName(body, length);
+    }
+
+    function charValue(char) {
+      if (char >= "0" && char <= "9") return char.charCodeAt(0) - 48;
+      if (char >= "A" && char <= "Z") return char.charCodeAt(0) - 55;
+      return 0;
+    }
+
+    function checkSteps(value) {
+      const weights = [7, 3, 1];
+      return Array.from(value).map((char, index) => {
+        const weight = weights[index % weights.length];
+        const numeric = charValue(char);
+        return {
+          char,
+          numeric,
+          weight,
+          product: numeric * weight
+        };
+      });
+    }
+
+    function checkTotal(value) {
+      return checkSteps(value).reduce((sum, step) => sum + step.product, 0);
+    }
+
+    function checkDigit(value) {
+      const total = checkTotal(value);
+      return String(total % 10);
+    }
+
+    function getData(prefix) {
+      return Object.fromEntries(
+        fieldEls
+          .filter((el) => el.dataset.field.startsWith(`${prefix}.`))
+          .map((el) => [el.dataset.field.split(".")[1], el.value])
+      );
+    }
+
+    function maybeWarnLength(warnings, label, rawValue, length) {
+      const cleaned = cleanField(rawValue);
+      if (cleaned.length > length) {
+        warnings.push(`${label} was longer than ${length} MRZ characters and has been truncated.`);
+      }
+    }
+
+    function warnDocumentCode(warnings, format, value) {
+      const cleaned = cleanField(value);
+      if (format === "td3" && cleaned[0] !== "P") {
+        warnings.push("TD3 passport document codes should start with P.");
+      }
+      if (format === "td1" && !["A", "C", "I"].includes(cleaned[0])) {
+        warnings.push("TD1 document codes should start with A, C, or I.");
+      }
+    }
+
+    function buildTD3FromData(data) {
+      const warnings = [];
+      warnDocumentCode(warnings, "td3", data.documentCode);
+      maybeWarnLength(warnings, "Passport number", data.number, 9);
+      maybeWarnLength(warnings, "Personal number or optional data", data.personal, 14);
+
+      const documentCode = code(data.documentCode, 2, "P<");
+      const issuer = code(data.issuer, 3, "UTO");
+      const names = nameField(data.surname, data.given, 39);
+      const number = fixed(data.number, 9);
+      const numberCheck = checkDigit(number);
+      const nationality = code(data.nationality, 3, issuer);
+      const birth = dateToYYMMDD(data.birth);
+      const birthCheck = checkDigit(birth);
+      const sex = cleanSex(data.sex);
+      const expiry = dateToYYMMDD(data.expiry);
+      const expiryCheck = checkDigit(expiry);
+      const personal = fixed(data.personal, 14);
+      const personalCheck = checkDigit(personal);
+      const composite = checkDigit(number + numberCheck + birth + birthCheck + expiry + expiryCheck + personal + personalCheck);
+      const line1 = documentCode + issuer + names;
+      const line2 = number + numberCheck + nationality + birth + birthCheck + sex + expiry + expiryCheck + personal + personalCheck + composite;
+
+      return {
+        label: "TD3",
+        expectedLength: 44,
+        lines: [line1, line2],
+        warnings,
+        checks: [
+          ["Passport number", numberCheck],
+          ["Date of birth", birthCheck],
+          ["Date of expiry", expiryCheck],
+          ["Personal or optional data", personalCheck],
+          ["Composite", composite]
+        ]
+      };
+    }
+
+    function buildTD3() {
+      return buildTD3FromData(getData("td3"));
+    }
+
+    function buildTD1FromData(data) {
+      const warnings = [];
+      warnDocumentCode(warnings, "td1", data.documentCode);
+      maybeWarnLength(warnings, "Optional data line 2", data.optional2, 11);
+
+      const documentCode = code(data.documentCode, 2, "I<");
+      const issuer = code(data.issuer, 3, "UTO");
+      const rawNumber = cleanField(data.number);
+      const hasLongNumber = rawNumber.length > 9;
+      const number = fixed(rawNumber, 9);
+      let numberCheck = checkDigit(number);
+      let optional1 = fixed(data.optional1, 15);
+
+      if (hasLongNumber) {
+        const numberRemainder = rawNumber.slice(9, 22);
+        numberCheck = checkDigit(number + numberRemainder);
+        optional1 = (numberRemainder + numberCheck + "<").padEnd(15, "<").slice(0, 15);
+        if (rawNumber.length > 22) {
+          warnings.push("Document number was longer than 22 MRZ characters and has been truncated.");
+        }
+        if (cleanField(data.optional1).length > 0) {
+          warnings.push("Optional data line 1 is reserved for the long document number in this TD1 output.");
+        }
+      } else {
+        maybeWarnLength(warnings, "Optional data line 1", data.optional1, 15);
+      }
+
+      const birth = dateToYYMMDD(data.birth);
+      const birthCheck = checkDigit(birth);
+      const sex = cleanSex(data.sex);
+      const expiry = dateToYYMMDD(data.expiry);
+      const expiryCheck = checkDigit(expiry);
+      const nationality = code(data.nationality, 3, issuer);
+      const optional2 = fixed(data.optional2, 11);
+      const names = nameField(data.surname, data.given, 30);
+      const line1 = documentCode + issuer + number + (hasLongNumber ? "<" : numberCheck) + optional1;
+      const composite = checkDigit(line1.slice(5) + birth + birthCheck + expiry + expiryCheck + optional2);
+      const line2 = birth + birthCheck + sex + expiry + expiryCheck + nationality + optional2 + composite;
+      const line3 = names;
+
+      return {
+        label: "TD1",
+        expectedLength: 30,
+        lines: [line1, line2, line3],
+        warnings,
+        checks: [
+          [hasLongNumber ? "Long document number" : "Document number", numberCheck],
+          ["Date of birth", birthCheck],
+          ["Date of expiry", expiryCheck],
+          ["Composite", composite]
+        ]
+      };
+    }
+
+    function buildTD1() {
+      return buildTD1FromData(getData("td1"));
+    }
+
+    function renderTemplateCards() {
+      templateGrid.innerHTML = "";
+      presetOrder.forEach((id) => {
+        const template = templates[id];
+        const button = document.createElement("button");
+        const titleWrap = document.createElement("span");
+        const emoji = document.createElement("span");
+        const title = document.createElement("strong");
+        const codes = document.createElement("span");
+        const formatChip = document.createElement("span");
+        const codeChip = document.createElement("span");
+        const docChip = document.createElement("span");
+        const detail = document.createElement("small");
+
+        button.className = "preset-card";
+        button.type = "button";
+        button.dataset.template = id;
+        button.setAttribute("aria-pressed", "false");
+        titleWrap.className = "preset-title";
+        emoji.className = "preset-emoji";
+        emoji.textContent = presetEmoji[id] || presetEmoji[id.split("-")[0]] || "📄";
+        title.textContent = template.label;
+        codes.className = "preset-code";
+        formatChip.className = "chip cyan";
+        formatChip.textContent = template.format.toUpperCase();
+        codeChip.className = "chip";
+        codeChip.textContent = template.code;
+        docChip.className = "chip amber";
+        docChip.textContent = template.fields.documentCode;
+        detail.textContent = `${template.country} specimen preset`;
+        codes.append(formatChip, codeChip, docChip);
+        titleWrap.append(emoji, title);
+        button.append(titleWrap, codes, detail);
+        button.addEventListener("click", () => applyTemplate(id));
+        templateGrid.appendChild(button);
+      });
+    }
+
+    function renderLengths(result) {
+      lengthsEl.innerHTML = "";
+      result.lines.forEach((line, index) => {
+        const item = document.createElement("span");
+        const ok = line.length === result.expectedLength;
+        item.className = `badge ${ok ? "ok" : "warn"}`;
+        item.textContent = `Line ${index + 1}: ${line.length}/${result.expectedLength}`;
+        lengthsEl.appendChild(item);
+      });
+    }
+
+    function renderChecks(result) {
+      checksEl.innerHTML = "";
+      result.checks.forEach(([label, digit]) => {
+        const item = document.createElement("li");
+        const name = document.createElement("span");
+        const value = document.createElement("span");
+        name.className = "check-name";
+        value.className = "check-value";
+        name.textContent = label;
+        value.textContent = digit;
+        item.append(name, value);
+        checksEl.appendChild(item);
+      });
+    }
+
+    function renderWarnings(result) {
+      warningsEl.innerHTML = "";
+      result.warnings.forEach((warning) => {
+        const item = document.createElement("li");
+        item.textContent = warning;
+        warningsEl.appendChild(item);
+      });
+    }
+
+    function makeEl(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
+
+    function checksumRecord(label, value, digit) {
+      const total = checkTotal(value);
+      return {
+        label,
+        value,
+        digit,
+        expected: String(total % 10),
+        total,
+        steps: checkSteps(value)
+      };
+    }
+
+    function buildTD3Audit(data) {
+      const result = buildTD3FromData(data);
+      const number = fixed(data.number, 9);
+      const numberCheck = checkDigit(number);
+      const birth = dateToYYMMDD(data.birth);
+      const birthCheck = checkDigit(birth);
+      const expiry = dateToYYMMDD(data.expiry);
+      const expiryCheck = checkDigit(expiry);
+      const personal = fixed(data.personal, 14);
+      const personalCheck = checkDigit(personal);
+      const compositeValue = number + numberCheck + birth + birthCheck + expiry + expiryCheck + personal + personalCheck;
+
+      return {
+        result,
+        logic: [
+          "TD3 line 1 = document code + issuer + name field.",
+          "TD3 line 2 = number + check + nationality + birth + check + sex + expiry + check + optional + check + composite.",
+          "Composite excludes issuer, nationality, sex, and name."
+        ],
+        records: [
+          checksumRecord("Passport number", number, numberCheck),
+          checksumRecord("Date of birth", birth, birthCheck),
+          checksumRecord("Date of expiry", expiry, expiryCheck),
+          checksumRecord("Optional data", personal, personalCheck),
+          checksumRecord("Composite", compositeValue, checkDigit(compositeValue))
+        ]
+      };
+    }
+
+    function buildTD1Audit(data) {
+      const result = buildTD1FromData(data);
+      const rawNumber = cleanField(data.number);
+      const hasLongNumber = rawNumber.length > 9;
+      const number = fixed(rawNumber, 9);
+      const numberRemainder = hasLongNumber ? rawNumber.slice(9, 22) : "";
+      const numberValue = hasLongNumber ? number + numberRemainder : number;
+      const numberCheck = checkDigit(numberValue);
+      const birth = dateToYYMMDD(data.birth);
+      const birthCheck = checkDigit(birth);
+      const expiry = dateToYYMMDD(data.expiry);
+      const expiryCheck = checkDigit(expiry);
+      const optional2 = fixed(data.optional2, 11);
+      const line1 = result.lines[0];
+      const compositeValue = line1.slice(5) + birth + birthCheck + expiry + expiryCheck + optional2;
+
+      return {
+        result,
+        logic: [
+          "TD1 line 1 = document code + issuer + number + check/filler + optional data.",
+          "TD1 line 2 = birth + check + sex + expiry + check + nationality + optional data + composite.",
+          "TD1 line 3 = name field."
+        ],
+        records: [
+          checksumRecord(hasLongNumber ? "Long document number" : "Document number", numberValue, numberCheck),
+          checksumRecord("Date of birth", birth, birthCheck),
+          checksumRecord("Date of expiry", expiry, expiryCheck),
+          checksumRecord("Composite", compositeValue, checkDigit(compositeValue))
+        ]
+      };
+    }
+
+    function buildAudit(format, fields) {
+      return format === "td3" ? buildTD3Audit(fields) : buildTD1Audit(fields);
+    }
+
+    function renderChecksumDetails(container, records, compact = false) {
+      records.forEach((record) => {
+        const card = makeEl("div", "logic-card");
+        const header = document.createElement("header");
+        const title = makeEl("h4", "", record.label);
+        const status = makeEl("span", record.digit === record.expected ? "badge ok" : "badge warn", `${record.digit}/${record.expected}`);
+        const formula = makeEl("div", "formula");
+        const value = makeEl("strong", "", record.value);
+        formula.append(value, document.createElement("br"), document.createTextNode(`sum ${record.total} % 10 = ${record.expected}`));
+
+        header.append(title, status);
+        card.append(header, formula);
+
+        if (!compact) {
+          const details = document.createElement("details");
+          const summary = document.createElement("summary");
+          const steps = makeEl("div", "char-steps");
+          summary.textContent = "weighted characters";
+          steps.textContent = record.steps.map((step) => `${step.char || "<"}:${step.numeric}x${step.weight}=${step.product}`).join("  ");
+          details.append(summary, steps);
+          card.append(details);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderBackendCard(templateId, compact = false) {
+      const template = templates[templateId];
+      const audit = buildAudit(template.format, template.fields);
+      const card = makeEl("div", "logic-card");
+      const header = document.createElement("header");
+      const title = makeEl("h4", "", template.label);
+      const meta = makeEl("span", "badge ok", audit.result.label);
+      const pre = document.createElement("pre");
+      const logic = makeEl("div", "formula", audit.logic.join(" "));
+      const checks = makeEl("div", "logic-list");
+
+      pre.textContent = audit.result.lines.join("\n");
+      header.append(title, meta);
+      card.append(header, pre, logic);
+      renderChecksumDetails(checks, audit.records, compact);
+      card.append(checks);
+      return card;
+    }
+
+    function renderBackend() {
+      backendCurrentEl.innerHTML = "";
+      backendPresetsEl.innerHTML = "";
+
+      const currentData = getData(state.format);
+      const currentAudit = buildAudit(state.format, currentData);
+      const currentCard = makeEl("div", "logic-card");
+      const currentHeader = document.createElement("header");
+      const currentTitle = makeEl("h4", "", templates[state.activeTemplate]?.label || `Custom ${currentAudit.result.label}`);
+      const currentMeta = makeEl("span", "badge ok", currentAudit.result.label);
+      const currentPre = document.createElement("pre");
+      const currentLogic = makeEl("div", "formula", currentAudit.logic.join(" "));
+
+      currentPre.textContent = currentAudit.result.lines.join("\n");
+      currentHeader.append(currentTitle, currentMeta);
+      currentCard.append(currentHeader, currentPre, currentLogic);
+      backendCurrentEl.appendChild(currentCard);
+      renderChecksumDetails(backendCurrentEl, currentAudit.records);
+
+      [...presetOrder, "icao-td3", "icao-td1"].forEach((id) => {
+        backendPresetsEl.appendChild(renderBackendCard(id));
+      });
+    }
+
+    function renderTemplateState(result) {
+      const data = getData(state.format);
+      const template = templates[state.activeTemplate];
+      activeTemplateNameEl.textContent = template ? template.label : `Custom ${result.label}`;
+      summaryCountryEl.textContent = `${code(data.issuer, 3, "UTO")} / ${code(data.nationality, 3, data.issuer || "UTO")}`;
+      summaryDocumentEl.textContent = `${code(data.documentCode, 2, state.format === "td3" ? "P<" : "I<")} ${result.label}`;
+      summaryHolderEl.textContent = cleanNameComponent(data.surname) || "SPECIMEN";
+      Array.from(templateGrid.querySelectorAll("[data-template]")).forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.template === state.activeTemplate));
+      });
+    }
+
+    function renderCalculator() {
+      const cleaned = cleanField(calcInputEl.value);
+      const weights = [7, 3, 1];
+      const total = Array.from(cleaned).reduce((sum, char, index) => {
+        return sum + charValue(char) * weights[index % weights.length];
+      }, 0);
+      calcResultEl.innerHTML = "";
+      const digit = document.createElement("strong");
+      const detail = document.createElement("span");
+      digit.textContent = String(total % 10);
+      detail.textContent = `Sum ${total}, modulus 10 remainder ${total % 10}.`;
+      calcResultEl.append(digit, detail);
+    }
+
+    function render() {
+      const result = state.format === "td3" ? buildTD3() : buildTD1();
+      outputEl.textContent = result.lines.join("\n");
+      formatBadgeEl.textContent = result.label;
+      renderLengths(result);
+      renderChecks(result);
+      renderWarnings(result);
+      renderTemplateState(result);
+      renderCalculator();
+      if (!backendPanel.hidden) renderBackend();
+      return result;
+    }
+
+    function setFormat(format, shouldRender = true) {
+      state.format = format;
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.panel !== format;
+      });
+      switchButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.switch === format));
+      });
+      if (shouldRender) render();
+    }
+
+    function setFields(format, fields) {
+      Object.entries(fields).forEach(([key, value]) => {
+        const input = document.querySelector(`[data-field="${format}.${key}"]`);
+        if (input) input.value = value;
+      });
+    }
+
+    function applyTemplate(templateId) {
+      const template = templates[templateId];
+      if (!template) return;
+      state.activeTemplate = templateId;
+      setFormat(template.format, false);
+      setFields(template.format, template.fields);
+      render();
+    }
+
+    function markCustom() {
+      state.activeTemplate = "";
+    }
+
+    function loadSample() {
+      applyTemplate(state.format === "td3" ? "icao-td3" : "icao-td1");
+    }
+
+    function getFileName(result) {
+      const template = templates[state.activeTemplate];
+      const label = template ? template.label : `custom-${result.label}`;
+      return `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-mrz.txt`;
+    }
+
+    function downloadMRZ() {
+      const result = render();
+      const blob = new Blob([result.lines.join("\n") + "\n"], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = getFileName(result);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function startMatrix() {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const context = matrixCanvas.getContext("2d");
+      const glyphs = "MRZTD3TD1731MOD10<ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let columns = [];
+      let width = 0;
+      let height = 0;
+      const fontSize = 16;
+
+      function resize() {
+        const scale = window.devicePixelRatio || 1;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        matrixCanvas.width = Math.floor(width * scale);
+        matrixCanvas.height = Math.floor(height * scale);
+        matrixCanvas.style.width = `${width}px`;
+        matrixCanvas.style.height = `${height}px`;
+        context.setTransform(scale, 0, 0, scale, 0, 0);
+        const count = Math.ceil(width / fontSize);
+        columns = Array.from({ length: count }, () => Math.random() * -height);
+      }
+
+      function draw() {
+        context.fillStyle = "rgba(3, 7, 5, 0.18)";
+        context.fillRect(0, 0, width, height);
+        context.font = `${fontSize}px Courier New, monospace`;
+        context.textBaseline = "top";
+        columns.forEach((y, index) => {
+          const char = glyphs[Math.floor(Math.random() * glyphs.length)];
+          const x = index * fontSize;
+          context.fillStyle = Math.random() > 0.985 ? "rgba(255, 204, 102, 0.9)" : "rgba(92, 255, 194, 0.72)";
+          context.fillText(char, x, y);
+          columns[index] = y > height + Math.random() * 1200 ? Math.random() * -160 : y + fontSize;
+        });
+        if (!reducedMotion) requestAnimationFrame(draw);
+      }
+
+      resize();
+      window.addEventListener("resize", resize);
+      if (reducedMotion) {
+        draw();
+      } else {
+        requestAnimationFrame(draw);
+      }
+    }
+
+    function setBackendOpen(open) {
+      backendPanel.hidden = !open;
+      backendToggle.setAttribute("aria-expanded", String(open));
+      backendToggleSmall.setAttribute("aria-expanded", String(open));
+      backendToggle.textContent = open ? "🧠 Backend open" : "🧠 Open backend";
+      backendToggleSmall.textContent = open ? "⚙️ Hide logic" : "⚙️ Logic";
+      if (open) {
+        renderBackend();
+        if (backendPanel.scrollIntoView) {
+          backendPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }
+
+    function toggleBackend() {
+      setBackendOpen(backendPanel.hidden);
+    }
+
+    fieldEls.forEach((input) => {
+      input.addEventListener("input", () => {
+        markCustom();
+        render();
+      });
+      input.addEventListener("change", () => {
+        markCustom();
+        render();
+      });
+    });
+
+    switchButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.activeTemplate = "";
+        setFormat(button.dataset.switch);
+      });
+    });
+
+    calcInputEl.addEventListener("input", renderCalculator);
+    sampleButton.addEventListener("click", loadSample);
+    downloadButton.addEventListener("click", downloadMRZ);
+    backendToggle.addEventListener("click", toggleBackend);
+    backendToggleSmall.addEventListener("click", toggleBackend);
+    backendClose.addEventListener("click", () => setBackendOpen(false));
+
+    copyButton.addEventListener("click", async () => {
+      const result = render();
+      const mrz = result.lines.join("\n");
+      try {
+        await navigator.clipboard.writeText(mrz);
+        copyButton.textContent = "✅ Copied";
+        window.setTimeout(() => {
+          copyButton.textContent = "📋 Copy";
+        }, 1200);
+      } catch (error) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(outputEl);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        copyButton.textContent = "✅ Selected";
+        window.setTimeout(() => {
+          copyButton.textContent = "📋 Copy";
+        }, 1200);
+      }
+    });
+
+    renderTemplateCards();
+    applyTemplate(state.activeTemplate);
+    startMatrix();
+  </script>
+</body>
+</html>

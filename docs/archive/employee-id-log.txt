@@ -1,0 +1,199 @@
+02:11:06 Starting deep scan of 8 smart-object hosts
+02:11:06 Booting Photopea iframe...
+02:11:06 Photopea ready
+02:11:06 Opening EmployeeID.psd (76937 KB)...
+02:11:08 Main PSD opened
+02:11:08 [Signature] looking for layer (candidates: Signature, SIGNATURE)
+02:11:08 [Signature] matched ArtLayer 'Signature', calling placedLayerEditContents
+02:11:08 [Signature] indexed 1 nested layers; closing subdoc
+02:11:08 [Signature] opened · 1 nested layers
+02:11:08 [SMALLDATE] looking for layer (candidates: SMALLDATE, Smalldate)
+02:11:08 [SMALLDATE] matched ArtLayer 'SMALLDATE', calling placedLayerEditContents
+02:11:08 [SMALLDATE] indexed 2 nested layers; closing subdoc
+02:11:08 [SMALLDATE] opened · 2 nested layers
+02:11:08 [SMALL_PHOTO] looking for layer (candidates: SMALL_PHOTO, SmallPhoto)
+02:11:09 [SMALL_PHOTO] matched ArtLayer 'SMALL_PHOTO', calling placedLayerEditContents
+02:11:09 [SMALL_PHOTO] indexed 1 nested layers; closing subdoc
+02:11:09 [SMALL_PHOTO] opened · 1 nested layers
+02:11:09 [BIG_PHOTO] looking for layer (candidates: BIG_PHOTO, BigPhoto)
+02:11:09 [BIG_PHOTO] matched ArtLayer 'BIG_PHOTO', calling placedLayerEditContents
+02:11:09 [BIG_PHOTO] indexed 1 nested layers; closing subdoc
+02:11:09 [BIG_PHOTO] opened · 1 nested layers
+02:11:09 [PERFO1] looking for layer (candidates: PERFO1, Perfo1, PERFO_1)
+02:11:09 [PERFO1] matched ArtLayer 'PERFO1', calling placedLayerEditContents
+02:11:09 [PERFO1] indexed 1 nested layers; closing subdoc
+02:11:09 [PERFO1] opened · 1 nested layers
+02:11:09 [PERFO2] looking for layer (candidates: PERFO2, Perfo2, PERFO_2)
+02:11:09 [PERFO2] matched ArtLayer 'PERFO2', calling placedLayerEditContents
+02:11:09 [PERFO2] indexed 1 nested layers; closing subdoc
+02:11:09 [PERFO2] opened · 1 nested layers
+02:11:09 [PERFO3] looking for layer (candidates: PERFO3, Perfo3, PERFO_3)
+02:11:09 [PERFO3] matched ArtLayer 'PERFO3', calling placedLayerEditContents
+02:11:09 [PERFO3] indexed 1 nested layers; closing subdoc
+02:11:09 [PERFO3] opened · 1 nested layers
+02:11:09 [Text Edit] looking for layer (candidates: Text Edit, Text, MRZ, TextEdit, TEXT EDIT)
+02:11:09 [Text Edit] matched ArtLayer 'Text Edit', calling placedLayerEditContents
+02:11:09 [Text Edit] indexed 14 nested layers; closing subdoc
+02:11:09 [Text Edit] opened · 14 nested layers
+02:11:09 Deep scan complete — 8/8 smart objects opened
+02:11:15 [employee export] booting Photopea (forced reload)...
+02:11:15 [employee export] Photopea ready
+02:11:15 [employee export] sending PSD bytes (76937 KB)
+02:11:17 [employee export] main PSD loaded
+02:11:17 [step:SMALLDATE] posting (timeout 20s)
+02:11:19 [SMALLDATE] entering smart object
+02:11:19 [SMALLDATE] inside subdoc 'SMALLDATE', 2 art layers
+02:11:19 [setText] 'FIRST_2_DIGITS' verified := "19"
+02:11:19 [SMALLDATE] FIRST_2_DIGITS := 19
+02:11:19 [setText] 'LAST_2_DIGITS' verified := "90"
+02:11:19 [SMALLDATE] LAST_2_DIGITS := 90
+02:11:19 [closeSmart] save() ok ('SMALLDATE')
+02:11:19 [closeSmart] close(SAVECHANGES) ok ('SMALLDATE')
+02:11:19 [SMALLDATE] saved + closed
+02:11:19 [step:SMALLDATE] done
+02:11:19 [step:PERFO1] posting (timeout 15s)
+02:11:19 [PERFO1] locating
+02:11:19 [PERFO1] opening (docs=1)
+02:11:19 [PERFO1] subdoc opened: 'PERFO'
+02:11:19 [PERFO1] 1 text layers
+02:11:19 [setText] 'PERFO_TEXT' verified := "0\r6\r1\r9\r9\r0"
+02:11:19 [PERFO1] wrote 6 (target=061990)
+02:11:19 [closeSmart] save() ok ('PERFO')
+02:11:19 [closeSmart] close(SAVECHANGES) ok ('PERFO')
+02:11:19 [PERFO1] saved + closed
+02:11:19 [step:PERFO1] done
+02:11:19 [step:PERFO2] posting (timeout 15s)
+02:11:19 [PERFO2] locating
+02:11:19 [PERFO2] opening (docs=1)
+02:11:19 [PERFO2] subdoc opened: 'PERFO'
+02:11:19 [PERFO2] 1 text layers
+02:11:19 [setText] 'PERFO_TEXT' verified := "0\r6\r1\r9\r9\r0"
+02:11:19 [PERFO2] wrote 6 (target=061990)
+02:11:19 [closeSmart] save() ok ('PERFO')
+02:11:19 [closeSmart] close(SAVECHANGES) ok ('PERFO')
+02:11:19 [PERFO2] saved + closed
+02:11:19 [step:PERFO2] done
+02:11:19 [step:PERFO3] posting (timeout 15s)
+02:11:20 [PERFO3] locating
+02:11:20 [PERFO3] opening (docs=1)
+02:11:20 [PERFO3] subdoc opened: 'PERFO'
+02:11:20 [PERFO3] 1 text layers
+02:11:20 [setText] 'PERFO_TEXT' verified := "0\r6\r1\r9\r9\r0"
+02:11:20 [PERFO3] wrote 6 (target=061990)
+02:11:20 [closeSmart] save() ok ('PERFO')
+02:11:20 [closeSmart] close(SAVECHANGES) ok ('PERFO')
+02:11:20 [PERFO3] saved + closed
+02:11:20 [step:PERFO3] done
+02:11:20 [step:MRZ] posting (timeout 20s)
+02:11:20 [MRZ] entering 'Text Edit' (ArtLayer)
+02:11:20 [MRZ] subdoc opened: 'MRZ'
+02:11:20 [MRZ] 14 text layers in subdoc
+02:11:20 [MRZ] names: 'DOCNMBR', 'FIRST', 'LAST', 'GENDER', 'COUNTRY', 'ENDVALID', 'VALID', 'BIRTHDATE', 'YEAR', 'CODE', 'CITYBIRTH', 'HEIGHT', 'MRZ', 'LOCATION'
+02:11:20 [MRZ] writing 'DOCNMBR' := "AB12C34D5"
+02:11:20 [setText] 'DOCNMBR' verified := "AB12C34D5"
+02:11:20 [MRZ] wrote 'DOCNMBR'
+02:11:20 [MRZ] writing 'FIRST' := "John"
+02:11:20 [setText] 'FIRST' verified := "John"
+02:11:20 [MRZ] wrote 'FIRST'
+02:11:20 [MRZ] writing 'LAST' := "Wick"
+02:11:20 [setText] 'LAST' verified := "Wick"
+02:11:20 [MRZ] wrote 'LAST'
+02:11:20 [MRZ] writing 'GENDER' := "F/F"
+02:11:20 [setText] 'GENDER' verified := "F/F"
+02:11:20 [MRZ] wrote 'GENDER'
+02:11:20 [MRZ] writing 'COUNTRY' := "Nederlandse"
+02:11:20 [setText] 'COUNTRY' verified := "Nederlandse"
+02:11:20 [MRZ] wrote 'COUNTRY'
+02:11:20 [MRZ] writing 'ENDVALID' := "14 JUN/JUN 2030"
+02:11:20 [setText] 'ENDVALID' verified := "14 JUN/JUN 2030"
+02:11:20 [MRZ] wrote 'ENDVALID'
+02:11:20 [MRZ] writing 'VALID' := "14 JUN/JUN 2020"
+02:11:20 [setText] 'VALID' verified := "14 JUN/JUN 2020"
+02:11:20 [MRZ] wrote 'VALID'
+02:11:20 [MRZ] writing 'BIRTHDATE' := "14 JUN/JUN"
+02:11:20 [setText] 'BIRTHDATE' verified := "14 JUN/JUN"
+02:11:20 [MRZ] wrote 'BIRTHDATE'
+02:11:20 [MRZ] writing 'YEAR' := "1990"
+02:11:20 [setText] 'YEAR' verified := "1990"
+02:11:20 [MRZ] wrote 'YEAR'
+02:11:20 [MRZ] writing 'CODE' := "123456789"
+02:11:20 [setText] 'CODE' verified := "123456789"
+02:11:20 [MRZ] wrote 'CODE'
+02:11:20 [MRZ] writing 'CITYBIRTH' := "Zoetermeer"
+02:11:20 [setText] 'CITYBIRTH' verified := "Zoetermeer"
+02:11:20 [MRZ] wrote 'CITYBIRTH'
+02:11:20 [MRZ] writing 'HEIGHT' := "1,72 m"
+02:11:20 [setText] 'HEIGHT' verified := "1,72 m"
+02:11:20 [MRZ] wrote 'HEIGHT'
+02:11:20 [MRZ] writing 'MRZ' := "BCNLDAB12C34D59<<<<<<<<<<<<<<<\n9006142F3"
+02:11:20 [setText] 'MRZ' contents= silently no-op (got "BCNLDAB12C34D59<<<<<<<<<<<<<<<\r9006142F3"), trying setd descriptor
+02:11:40 [step:MRZ] TIMED OUT — skipping
+02:11:40 [step:MAIN_DATES] posting (timeout 15s)
+02:11:40 [MAIN] active doc 'file'
+02:11:40 [setText] 'BIG_DATE_1' verified := "1990"
+02:11:40 [MAIN] BIG_DATE_1 := 1990
+02:11:40 [setText] 'BIG_DATE_2' verified := "1990"
+02:11:40 [MAIN] BIG_DATE_2 := 1990
+02:11:40 [step:MAIN_DATES] done
+02:11:40 [employee export] pre-resizing Signature to 1061x123 (contain)
+02:11:40 [employee export] Signature resized to 9 KB PNG
+02:11:40 [employee export] posting Signature bytes (9 KB)
+02:11:40 [employee export] Signature opened in Photopea
+02:11:40 [employee export] placing Signature into Signature...
+02:11:41 [Signature] source image opened: file (1061x123)
+02:11:41 [Signature] copied + closed source
+02:11:41 [Signature] entering smart object 'Signature'
+02:11:41 [Signature] inside 'SIGNATURE', artLayers=1
+02:11:41 [Signature] target by name: SIGNATURE_1
+02:11:41 [Signature] subdoc canvas 1061x123 (image pre-sized to 1061x123)
+02:11:41 [Signature] pasted onto subdoc
+02:11:41 [Signature] snapped to (0,0)
+02:11:41 [Signature] removed original target layer
+02:11:41 [closeSmart] save() ok ('SIGNATURE')
+02:11:41 [closeSmart] close(SAVECHANGES) ok ('SIGNATURE')
+02:11:41 [Signature] subdoc saved + closed
+02:11:41 [employee export] Placed Signature
+02:11:41 [employee export] Signature placed
+02:11:41 [employee export] pre-resizing Small photo to 2421x3292 (cover)
+02:11:42 [employee export] Small photo resized to 5566 KB PNG
+02:11:42 [employee export] posting Small photo bytes (5566 KB)
+02:11:43 [employee export] Small photo opened in Photopea
+02:11:43 [employee export] placing Small photo into SMALL_PHOTO...
+02:11:47 [Small photo] source image opened: file (2421x3292)
+02:11:47 [Small photo] copied + closed source
+02:11:47 [Small photo] entering smart object 'SMALL_PHOTO'
+02:11:47 [Small photo] inside 'SMALL_PHOTO', artLayers=1
+02:11:47 [Small photo] target by name: SMALL_IMAGE_1
+02:11:47 [Small photo] subdoc canvas 2421x3292 (image pre-sized to 2421x3292)
+02:11:47 [Small photo] pasted onto subdoc
+02:11:47 [Small photo] snapped to (0,0)
+02:11:47 [Small photo] removed original target layer
+02:11:47 [closeSmart] save() ok ('SMALL_PHOTO')
+02:11:47 [closeSmart] close(SAVECHANGES) ok ('SMALL_PHOTO')
+02:11:47 [Small photo] subdoc saved + closed
+02:11:47 [employee export] Placed Small photo
+02:11:47 [employee export] Small photo placed
+02:11:47 [employee export] pre-resizing Main photo to 534x743 (cover)
+02:11:47 [employee export] Main photo resized to 517 KB PNG
+02:11:47 [employee export] posting Main photo bytes (517 KB)
+02:11:48 [employee export] Main photo opened in Photopea
+02:11:48 [employee export] placing Main photo into BIG_PHOTO...
+02:11:48 [Main photo] source image opened: file (534x743)
+02:11:48 [Main photo] copied + closed source
+02:11:48 [Main photo] entering smart object 'BIG_PHOTO'
+02:11:48 [Main photo] inside 'BIG_PHOTO', artLayers=1
+02:11:48 [Main photo] target by name: BIG_IMAGE_1
+02:11:48 [Main photo] subdoc canvas 534x743 (image pre-sized to 534x743)
+02:11:48 [Main photo] pasted onto subdoc
+02:11:48 [Main photo] snapped to (0,0)
+02:11:48 [Main photo] removed original target layer
+02:11:48 [closeSmart] save() ok ('BIG_PHOTO')
+02:11:48 [closeSmart] close(SAVECHANGES) ok ('BIG_PHOTO')
+02:11:48 [Main photo] subdoc saved + closed
+02:11:48 [employee export] Placed Main photo
+02:11:48 [employee export] Main photo placed
+02:11:48 [employee export] saving PSD via saveToOE...
+02:12:01 [save] active doc 'file', total docs=1
+02:12:02 [employee export] saveToOE returned
+02:12:05 [A1 bundle] starting
+02:12:36 [A1 bundle] Photopea timed out: Photopea boot

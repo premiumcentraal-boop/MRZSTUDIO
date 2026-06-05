@@ -1,0 +1,26 @@
+{
+  "name": "employeeid-badge-worker",
+  "version": "1.0.0",
+  "description": "Windows worker for processing internal company badge generation jobs with Photoshop",
+  "main": "worker.js",
+  "private": true,
+  "scripts": {
+    "start": "node worker.js",
+    "test": "echo \"Run manual tests with Photoshop scripts\""
+  },
+  "keywords": [
+    "photoshop",
+    "badge",
+    "automation",
+    "worker"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1.0",
+  "rulesets": {
+    "DE-DOCNUM-VISIBLE-9-ALNUM": {
+      "description": "German passport / Personalausweis document number — 9 alphanumeric characters, ICAO mod-10 check digit. Letters I and O are avoided to prevent ambiguity with 1 and 0.",
+      "structure": "^[0-9ABCDEFGHJKLMNPQRSTUVWXYZ]{8}[0-9]$",
+      "icaoMod10Required": true,
+      "checkDigitRange": "0-9",
+      "sourceIds": ["SRC-BUNDESDRUCKEREI-DOCNUM", "SRC-BMI-PERSONALAUSWEIS", "SRC-BMI-REISEPASS"]
+    },
+    "DE-STEUER-ID-MOD-11-10": {
+      "description": "German Steuer-IdNr. 11 digits. First digit non-zero. In first 10 digits exactly one digit appears 2 or 3 times; remaining digits each appear at most once. 11th digit is ISO 7064 MOD 11,10 check.",
+      "structure": "^[1-9][0-9]{10}$",
+      "sourceIds": ["SRC-BZSt-STEUER-ID"]
+    },
+    "ICAO-MRZ-TD3": {
+      "description": "ICAO TD3 (passport) — 2 lines × 44 chars. Per-field check digits + composite check digit.",
+      "lineLength": 44,
+      "lineCount": 2,
+      "sourceIds": ["SRC-ICAO-9303"]
+    },
+    "ICAO-MRZ-TD1": {
+      "description": "ICAO TD1 (ID card) — 3 lines × 30 chars. Per-field check digits + composite check digit.",
+      "lineLength": 30,
+      "lineCount": 3,
+      "sourceIds": ["SRC-ICAO-9303"]
+    },
+    "DE-DRIVING-LICENCE-PUBLIC-SURFACE": {
+      "description": "German driving licence (Führerschein) — field 5 licence number. No public checksum is published. Structure-only validation; deeper checks return not_checked.",
+      "structure": "^[0-9A-Z]{8,12}$",
+      "publicChecksumKnown": false,
+      "sourceIds": ["SRC-EU-DL-2006-126", "SRC-BMVI-FUEHRERSCHEIN"]
+    }
+  }
+}

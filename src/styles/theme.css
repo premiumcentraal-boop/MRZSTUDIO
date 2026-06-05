@@ -1,0 +1,306 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --background: #050505;
+  --foreground: #ffffff;
+  --card: rgba(81, 81, 81, 0.24);
+  --card-foreground: #ffffff;
+  --popover: rgba(20, 20, 20, 0.9);
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #050505;
+  --secondary: rgba(255, 255, 255, 0.08);
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+  --accent: rgba(255, 255, 255, 0.12);
+  --accent-foreground: #ffffff;
+  --destructive: #ff6b7c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.08);
+  --input-background: rgba(0, 0, 0, 0.32);
+  --switch-background: rgba(255, 255, 255, 0.2);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: rgba(255, 255, 255, 0.4);
+  --chart-1: #ff80b5;
+  --chart-2: #80b5ff;
+  --chart-3: #b580ff;
+  --chart-4: #ffb580;
+  --chart-5: #80ffb5;
+  --radius: 1rem;
+  --sidebar: rgba(81, 81, 81, 0.24);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #050505;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: rgba(255, 255, 255, 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-mono: var(--font-mono);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input, select {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* Custom chevron for native <select>s — the default browser arrow sits flush
+ * against the right edge, which looks cramped next to our rounded corners.
+ * appearance:none strips the native arrow; the inline SVG below replaces it
+ * and sits ~14px inset so it clears the corner radius. */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='rgba(255,255,255,0.55)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 32px !important;
+}
+select::-ms-expand { display: none; }
+
+/* Frosted Variant B — matches the PremiumLiquidCard "balanced" spec so every
+   glass surface on the site reads as the same material. Layered backgrounds
+   provide a neutral grey tile tint over the live backdrop-filter blur, and
+   the box-shadow stack draws the silhouette + upper rim bevel + drop shadow
+   in a single pass. */
+.glass {
+  background-color: rgba(255, 255, 255, 0.03);
+  background-image: linear-gradient(
+    180deg,
+    rgba(195, 197, 200, 0.22) 0%,
+    rgba(155, 157, 160, 0.11) 100%
+  );
+  backdrop-filter: blur(18px) saturate(170%) brightness(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%) brightness(110%);
+  box-shadow:
+    inset 0 1.25px 0 rgba(255, 255, 255, 0.65),
+    inset 0 2.5px 0 rgba(255, 255, 255, 0.26),
+    inset 0 5px 6px -2px rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 22px 50px -18px rgba(0, 0, 0, 0.42);
+  border-radius: 28px;
+}
+
+.glass-sm {
+  background-color: rgba(255, 255, 255, 0.03);
+  background-image: linear-gradient(
+    180deg,
+    rgba(195, 197, 200, 0.22) 0%,
+    rgba(155, 157, 160, 0.11) 100%
+  );
+  backdrop-filter: blur(14px) saturate(160%) brightness(108%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%) brightness(108%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 2px 0 rgba(255, 255, 255, 0.20),
+    inset 0 4px 5px -2px rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 16px 36px -14px rgba(0, 0, 0, 0.38);
+  border-radius: 18px;
+}
+
+/* Subtle living-glass rim sheen — animated only on the rim mask, not the card */
+@keyframes liquidRimDrift {
+  0%   { background-position: -30% 0; }
+  100% { background-position: 130% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .liquid-rim-sheen { animation: none !important; }
+}
+
+.glass-input {
+  background-color: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: #fff;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.glass-input:focus {
+  border-color: rgba(255, 255, 255, 0.55);
+  background-color: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Transparency indicator for the PhotoEditor preview frame: a bright vertical
+   line sweeps left-to-right over a checkered base so transparent regions are
+   unmistakable. */
+.photo-editor-transparency-bg {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.6);
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.22) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.22) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.22) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.photo-editor-transparency-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  animation: photo-editor-transparency-sweep 2.4s linear infinite;
+}
+
+@keyframes photo-editor-transparency-sweep {
+  0%   { background-position: -120% 0; }
+  100% { background-position: 120% 0; }
+}
+
+/* Repeating scanner sweep — used on the "Generate a matching ID" CTA. A
+   bright diagonal band travels left→right across the card every few seconds
+   to hint at the badge-scanning theme. */
+@keyframes id-cta-scanner {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  10%  { opacity: 0.9; }
+  55%  { opacity: 0.9; }
+  70%  { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+}
+.id-cta-scanner {
+  animation: id-cta-scanner 3.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .id-cta-scanner { animation: none; }
+}
