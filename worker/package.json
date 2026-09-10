@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node worker.js",
+    "image-to-video": "node scripts/image-to-video.cjs",
     "test": "echo \"Run manual tests with Photoshop scripts\""
   },
   "keywords": [

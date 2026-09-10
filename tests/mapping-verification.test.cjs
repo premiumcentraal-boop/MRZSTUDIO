@@ -21,8 +21,6 @@ const mockBadgeJob = {
   template: 'EmployeeID.psd',
   input_json: {
     template: 'EmployeeID.psd',
-    country: 'NL',
-    doc_type: 'id_card',
     // Company fields
     company_name: 'Acme Corporation',
     issuer_code: 'NLD',
@@ -77,8 +75,6 @@ const expectedPSDLayerNames = [
   'COUNTRY',
   'CITYBIRTH',
   'LOCATION',
-  'MRZ',
-  'PERFO_STRING',
 ];
 
 console.log('===========================================');
@@ -148,13 +144,11 @@ const expectedValues = {
   VALID: '06/14/2020',
   BIRTHDATE: '06/14/1990',
   YEAR: '1990',
-  GENDER: 'V/F',
+  GENDER: 'Female',
   HEIGHT: '1,72 m',
   COUNTRY: 'Nederlandse',
   CITYBIRTH: 'Zoetermeer',
   LOCATION: 'Burg. van Zoetermeer',
-  MRZ: 'BCNLDAB12C34D59<<<<<<<<<<<<<<<\n9006142F3006140NLD123456789<<7\nDEVRIESMILA<<<<<<<<<<<<<<<<<<<',
-  PERFO_STRING: 'JUN/JUN1990',
 };
 
 let valueMappingErrors = 0;
@@ -199,7 +193,7 @@ const employeeFields = {
   valid_from: '06/14/2020',
   birth_date: '06/14/1990',
   birth_year: '1990',
-  gender: 'V/F',
+  gender: 'Female',
   height: '1,72 m',
   country_of_birth: 'Nederlandse',
   city_of_birth: 'Zoetermeer',

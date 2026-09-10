@@ -106,6 +106,7 @@ export interface BadgeJob {
   output_full_png_path: string | null;
   output_pdf_path: string | null;
   output_psd_path: string | null;
+  output_video_path: string | null;
   output_mockup_1_path: string | null;
   output_mockup_2_path: string | null;
   output_mockup_3_path: string | null;

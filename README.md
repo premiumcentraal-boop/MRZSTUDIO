@@ -1,3 +1,9 @@
+﻿# MRZ Studio V7
+
+Updated MRZ Studio release **V7** (7.0.0).
+
+---
+
 # Employee Badge Generator
 
 A React + Tailwind CSS application for generating standardized employee ID badges with automated PSD processing.
@@ -5,8 +11,8 @@ A React + Tailwind CSS application for generating standardized employee ID badge
 ## Features
 
 - **Standardized Image Processing**: Upload and crop photos to exact specifications
-  - Employee photos: 2421 × 3292 px
-  - Signatures: 420 × 123 px
+  - Employee photos: 2421 Ã— 3292 px
+  - Signatures: 420 Ã— 123 px
 - **AI Background Removal**: Automatic background removal for employee photos
 - **Interactive Photo Editor**: Drag-to-pan positioning and zoom controls
 - **Automated Badge Generation**: Worker-based PSD processing with MRZ and PERFO digit handling
@@ -14,45 +20,45 @@ A React + Tailwind CSS application for generating standardized employee ID badge
 ## Project Structure
 
 ```
-├── src/
-│   ├── app/
-│   │   ├── App.tsx                    # Main application component
-│   │   ├── IdGeneratorStep.tsx        # Badge generation form
-│   │   └── components/
-│   │       ├── photo-editor.tsx       # Reusable photo cropping component
-│   │       ├── figma/                 # Figma-imported components
-│   │       └── ui/                    # shadcn/ui components
-│   ├── lib/
-│   │   ├── badgeMapping.ts            # Data model and field mappings
-│   │   └── supabase.ts                # Supabase client configuration
-│   └── styles/
-│       ├── fonts.css                  # Font imports (add fonts here only)
-│       ├── globals.css                # Global styles
-│       ├── tailwind.css               # Tailwind v4 base
-│       └── theme.css                  # Design tokens and theme
-├── worker/
-│   ├── worker.js                      # Main PSD processing worker
-│   ├── job-adapter.js                 # Job queue adapter
-│   ├── EMPLOYEEID_LAYER_MAP.json      # PSD layer mappings
-│   └── scripts/
-│       ├── run_employeeid_job.jsx     # Photoshop automation script
-│       ├── verify_template.jsx        # Template verification
-│       ├── test_employeeid_job.jsx    # Worker testing script
-│       └── font_preflight.jsx         # Font availability check
-├── docs/
-│   ├── setup/                         # Setup and environment docs
-│   ├── alignment/                     # Data model alignment docs
-│   ├── backend/                       # Worker and Codex documentation
-│   │   └── card-generator/            # Legacy card generator tools
-│   ├── design/                        # Design specs and mockups
-│   └── archive/                       # Historical reference files
-├── scripts/
-│   ├── check-env.cjs                  # Environment validation
-│   └── test-supabase-connection.cjs   # Supabase connection test
-├── tests/
-│   └── mapping-verification.test.cjs  # Field mapping tests
-└── guidelines/
-    └── Guidelines.md                  # Design system guidelines
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ app/
+â”‚   â”‚   â”œâ”€â”€ App.tsx                    # Main application component
+â”‚   â”‚   â”œâ”€â”€ IdGeneratorStep.tsx        # Badge generation form
+â”‚   â”‚   â””â”€â”€ components/
+â”‚   â”‚       â”œâ”€â”€ photo-editor.tsx       # Reusable photo cropping component
+â”‚   â”‚       â”œâ”€â”€ figma/                 # Figma-imported components
+â”‚   â”‚       â””â”€â”€ ui/                    # shadcn/ui components
+â”‚   â”œâ”€â”€ lib/
+â”‚   â”‚   â”œâ”€â”€ badgeMapping.ts            # Data model and field mappings
+â”‚   â”‚   â””â”€â”€ supabase.ts                # Supabase client configuration
+â”‚   â””â”€â”€ styles/
+â”‚       â”œâ”€â”€ fonts.css                  # Font imports (add fonts here only)
+â”‚       â”œâ”€â”€ globals.css                # Global styles
+â”‚       â”œâ”€â”€ tailwind.css               # Tailwind v4 base
+â”‚       â””â”€â”€ theme.css                  # Design tokens and theme
+â”œâ”€â”€ worker/
+â”‚   â”œâ”€â”€ worker.js                      # Main PSD processing worker
+â”‚   â”œâ”€â”€ job-adapter.js                 # Job queue adapter
+â”‚   â”œâ”€â”€ EMPLOYEEID_LAYER_MAP.json      # PSD layer mappings
+â”‚   â””â”€â”€ scripts/
+â”‚       â”œâ”€â”€ run_employeeid_job.jsx     # Photoshop automation script
+â”‚       â”œâ”€â”€ verify_template.jsx        # Template verification
+â”‚       â”œâ”€â”€ test_employeeid_job.jsx    # Worker testing script
+â”‚       â””â”€â”€ font_preflight.jsx         # Font availability check
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ setup/                         # Setup and environment docs
+â”‚   â”œâ”€â”€ alignment/                     # Data model alignment docs
+â”‚   â”œâ”€â”€ backend/                       # Worker and Codex documentation
+â”‚   â”‚   â””â”€â”€ card-generator/            # Legacy card generator tools
+â”‚   â”œâ”€â”€ design/                        # Design specs and mockups
+â”‚   â””â”€â”€ archive/                       # Historical reference files
+â”œâ”€â”€ scripts/
+â”‚   â”œâ”€â”€ check-env.cjs                  # Environment validation
+â”‚   â””â”€â”€ test-supabase-connection.cjs   # Supabase connection test
+â”œâ”€â”€ tests/
+â”‚   â””â”€â”€ mapping-verification.test.cjs  # Field mapping tests
+â””â”€â”€ guidelines/
+    â””â”€â”€ Guidelines.md                  # Design system guidelines
 
 ```
 
@@ -149,3 +155,4 @@ node tests/mapping-verification.test.cjs
 ## Attributions
 
 See `docs/ATTRIBUTIONS.md` for third-party library credits.
+

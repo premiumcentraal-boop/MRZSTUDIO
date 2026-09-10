@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Loader2, Download, FileText, Layers, Image as ImageIcon, Check, ZoomIn, X, Wand2, Film, Sparkles } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { Loader2, Download, FileText, Layers, Image as ImageIcon, Check, ZoomIn, X, Wand2, Film, Sparkles, AlertCircle } from "lucide-react";
+import { supabase, isMockMode, isSupabaseConfigured } from "../../lib/supabase";
 import type { BadgeJob } from "../../lib/supabase";
 
 /* ============================================================================
@@ -451,105 +451,215 @@ export function IncomingItems({
   );
 }
 
+function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  display,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  display: string;
+  disabled?: boolean;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="text-white/70 text-xs">{label}</label>
+        <span className="text-white/80 text-xs mono">{display}</span>
+      </div>
+      <input
+        type="range"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full accent-white/80 disabled:opacity-40"
+      />
+    </div>
+  );
+}
+
 function MockupEditor({ url, onClose }: { url: string; onClose: () => void }) {
-  const [rendering, setRendering] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // Motion controls (unchanged) — the worker's shake/zoom model is built to
+  // match these, so they remain the single source of truth.
+  const [zoom, setZoom] = useState(0.25); // 0..1 → static zoom-in
+  const [shake, setShake] = useState(0.35); // 0..1 → handheld shake intensity
+  const [duration, setDuration] = useState(5); // seconds, 3..10
+
+  // Worker render lifecycle. The actual encode now happens on the FFmpeg worker
+  // (browser MediaRecorder can't meet the Android/VMOS codec spec), so we queue
+  // a Supabase job and wait for it.
+  const [phase, setPhase] = useState<"idle" | "uploading" | "working" | "done" | "error">("idle");
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<BadgeJob["status"] | null>(null);
+  const [videoPath, setVideoPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const busy = phase === "uploading" || phase === "working";
+
+  // Signed URL for the finished MP4 (badge-outputs bucket), reusing the same
+  // mechanism the result images use.
+  const { url: videoUrl, errored: videoErrored } = useSignedUrl(videoPath);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !rendering) onClose();
+      if (e.key === "Escape" && !busy) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, rendering]);
+  }, [onClose, busy]);
 
-  const exportVideo = async () => {
-    setError(null);
-    setRendering(true);
-    setProgress(0);
-    try {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise<void>((res, rej) => {
-        img.onload = () => res();
-        img.onerror = () => rej(new Error("Could not load image"));
-        img.src = url;
-      });
-
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas unavailable");
-      ctx.drawImage(img, 0, 0);
-
-      const stream = (canvas as any).captureStream?.(30) as MediaStream | undefined;
-      if (!stream) throw new Error("Canvas capture not supported in this browser");
-
-      const mp4Candidates = [
-        "video/mp4;codecs=avc1.640028",
-        "video/mp4;codecs=avc1.42E01E",
-        "video/mp4;codecs=avc1",
-        "video/mp4;codecs=h264",
-        "video/mp4",
-      ];
-      const mime = mp4Candidates.find((m) =>
-        (window as any).MediaRecorder?.isTypeSupported?.(m),
-      );
-      if (!mime) {
-        throw new Error(
-          "This browser cannot record MP4 natively. Try the latest Chrome, Edge or Safari.",
-        );
-      }
-      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
-      const chunks: BlobPart[] = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunks.push(e.data);
-      };
-      const done = new Promise<Blob>((res) => {
-        recorder.onstop = () => res(new Blob(chunks, { type: mime }));
-      });
-
-      const DURATION = 5000;
-      const start = performance.now();
-      recorder.start();
-      // Keep redrawing every frame — some browsers stall captureStream when
-      // the source canvas is idle.
-      let raf = 0;
-      const tick = () => {
-        const t = performance.now() - start;
-        ctx.drawImage(img, 0, 0);
-        setProgress(Math.min(1, t / DURATION));
-        if (t < DURATION) {
-          raf = requestAnimationFrame(tick);
+  // Poll the queued job row until it reaches a terminal state.
+  useEffect(() => {
+    if (phase !== "working" || !jobId || !supabase) return;
+    let alive = true;
+    const poll = async () => {
+      const { data, error: e } = await supabase!
+        .from("badge_jobs")
+        .select("status, output_video_path, error_message")
+        .eq("id", jobId)
+        .single();
+      if (!alive) return;
+      if (e || !data) return; // transient read error — keep polling
+      const row = data as Pick<BadgeJob, "status" | "output_video_path" | "error_message">;
+      setJobStatus(row.status);
+      if (row.status === "complete") {
+        if (row.output_video_path) {
+          setVideoPath(row.output_video_path);
+          setPhase("done");
         } else {
-          cancelAnimationFrame(raf);
-          recorder.stop();
-          stream.getTracks().forEach((t) => t.stop());
+          setError("Worker finished but returned no video. Check the worker logs.");
+          setPhase("error");
         }
-      };
-      raf = requestAnimationFrame(tick);
+      } else if (row.status === "failed") {
+        setError(row.error_message || "Video render failed on the worker.");
+        setPhase("error");
+      }
+    };
+    poll();
+    const id = setInterval(poll, 3000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [phase, jobId]);
 
-      const blob = await done;
-      const dlUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = dlUrl;
-      a.download = `mockup-5s.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(dlUrl), 2000);
+  const createVideo = async () => {
+    setError(null);
+    if (isMockMode) {
+      setError("Video creation needs the local FFmpeg worker, which isn't available in mock/dev mode.");
+      setPhase("error");
+      return;
+    }
+    if (!isSupabaseConfigured || !supabase) {
+      setError("Supabase isn't configured, so the worker can't be reached.");
+      setPhase("error");
+      return;
+    }
+
+    setPhase("uploading");
+    try {
+      // 1. Take the exact still the preview animates (unmodified, full image)
+      //    and upload it to the badge-inputs bucket.
+      const resp = await fetch(url, { mode: "cors" });
+      if (!resp.ok) throw new Error(`Could not fetch source image (${resp.status})`);
+      const blob = await resp.blob();
+      const ext =
+        blob.type === "image/jpeg" ? "jpg" : blob.type === "image/webp" ? "webp" : "png";
+      const uuid =
+        typeof crypto !== "undefined" && (crypto as any).randomUUID
+          ? (crypto as any).randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const sourceImagePath = `video-src/${uuid}.${ext}`;
+
+      const { error: upErr } = await supabase!.storage
+        .from("badge-inputs")
+        .upload(sourceImagePath, blob, {
+          contentType: blob.type || "image/png",
+          upsert: true,
+        });
+      if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
+
+      // 2. Build the render request per the worker contract.
+      const render = {
+        kind: "image_to_video" as const,
+        sourceImagePath,
+        durationSeconds: Math.max(3, Math.min(10, Math.round(duration))),
+        zoom: Math.max(0, Math.min(1, zoom)),
+        shake: Math.max(0, Math.min(1, shake)),
+      };
+
+      // 3. Queue the job. The RLS insert policy requires status='queued',
+      //    template='EmployeeID.psd', and input_json.meta.intended_use=
+      //    'internal_company_badge', so match those exactly. The worker's render
+      //    branch keys off input_json.render and ignores the badge fields;
+      //    employee_photo_path reuses the uploaded source to satisfy NOT NULL.
+      const input_json = {
+        meta: { intended_use: "internal_company_badge" },
+        render,
+      };
+      const { data, error: insErr } = await supabase!
+        .from("badge_jobs")
+        .insert({
+          status: "queued",
+          template: "EmployeeID.psd",
+          input_json,
+          employee_photo_path: sourceImagePath,
+          signature_image_path: null,
+        })
+        .select("id")
+        .single();
+      if (insErr) throw new Error(`Could not queue job: ${insErr.message}`);
+
+      setJobId((data as { id: string }).id);
+      setJobStatus("queued");
+      setPhase("working");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setRendering(false);
+      setPhase("error");
+    }
+  };
+
+  const reset = () => {
+    setPhase("idle");
+    setJobId(null);
+    setJobStatus(null);
+    setVideoPath(null);
+    setError(null);
+  };
+
+  const downloadVideo = async () => {
+    if (!videoUrl) return;
+    try {
+      const r = await fetch(videoUrl);
+      const b = await r.blob();
+      const u = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = "mockup.mp4";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(u), 2000);
+    } catch {
+      window.open(videoUrl, "_blank");
     }
   };
 
   return (
     <div
-      onClick={() => !rendering && onClose()}
+      onClick={() => !busy && onClose()}
       className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
     >
       <div
@@ -564,7 +674,7 @@ function MockupEditor({ url, onClose }: { url: string; onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            disabled={rendering}
+            disabled={busy}
             className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-white/80 disabled:opacity-40"
           >
             <X className="w-4 h-4" />
@@ -573,54 +683,133 @@ function MockupEditor({ url, onClose }: { url: string; onClose: () => void }) {
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-0">
           <div className="bg-black flex items-center justify-center p-4 min-h-[320px]">
-            <img
-              src={url}
-              alt=""
-              className="max-w-full max-h-[60vh] object-contain rounded-md"
-            />
+            {phase === "done" && videoUrl ? (
+              <video
+                src={videoUrl}
+                controls
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="max-w-full max-h-[60vh] rounded-md"
+              />
+            ) : (
+              <img
+                src={url}
+                alt=""
+                className="max-w-full max-h-[60vh] object-contain rounded-md"
+              />
+            )}
           </div>
 
           <div className="p-5 border-t md:border-t-0 md:border-l border-white/10 space-y-4">
             <div>
-              <div className="text-white/65 text-[10px] mono uppercase tracking-[0.16em] mb-2">
-                Export
+              <div className="flex items-center gap-1.5 text-white/65 text-[10px] mono uppercase tracking-[0.16em] mb-3">
+                <Sparkles className="w-3 h-3" />
+                Motion
               </div>
-              <button
-                type="button"
-                onClick={exportVideo}
-                disabled={rendering}
-                className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 rounded-full bg-white text-black text-sm hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {rendering ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Rendering… {Math.round(progress * 100)}%
-                  </>
-                ) : (
-                  <>
-                    <Film className="w-4 h-4" strokeWidth={2} />
-                    Export 5-second video
-                  </>
-                )}
-              </button>
-              <div className="mt-2 text-white/45 text-[11px] leading-relaxed">
-                Encodes the still mockup as a 5s MP4 (H.264) at the source resolution. Plays
-                everywhere — browsers, phones, social platforms.
+
+              <div className="space-y-4">
+                <Slider
+                  label="Duration"
+                  value={duration}
+                  min={3}
+                  max={10}
+                  step={0.5}
+                  disabled={busy}
+                  display={`${duration}s`}
+                  onChange={setDuration}
+                />
+                <Slider
+                  label="Zoom"
+                  value={zoom}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  disabled={busy}
+                  display={`${Math.round(zoom * 100)}%`}
+                  onChange={setZoom}
+                />
+                <Slider
+                  label="Shake"
+                  value={shake}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  disabled={busy}
+                  display={shake === 0 ? "Off" : `${Math.round(shake * 100)}%`}
+                  onChange={setShake}
+                />
               </div>
-              {error && (
-                <div className="mt-2 text-rose-300 text-[11px]">{error}</div>
-              )}
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <div className="flex items-center gap-1.5 text-white/65 text-[10px] mono uppercase tracking-[0.16em] mb-2">
-                <Sparkles className="w-3 h-3" />
-                More settings &amp; presets
+              <div className="text-white/65 text-[10px] mono uppercase tracking-[0.16em] mb-2">
+                Create video
               </div>
-              <div className="rounded-xl border border-dashed border-white/12 bg-white/[0.02] p-3 text-white/55 text-xs leading-relaxed">
-                Pan &amp; zoom motion, parallax depth, intro/outro stings, watermark overlay,
-                aspect-ratio presets (9:16, 1:1, 16:9) and MP4 export — coming soon.
+
+              {phase === "done" ? (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={downloadVideo}
+                    disabled={!videoUrl}
+                    className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 rounded-full bg-white text-black text-sm hover:bg-white/90 disabled:opacity-50 transition-colors"
+                  >
+                    <Download className="w-4 h-4" strokeWidth={2} />
+                    Download MP4
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 rounded-full border border-white/15 text-white/75 text-xs hover:bg-white/5 transition-colors"
+                  >
+                    Create another
+                  </button>
+                  {videoErrored && (
+                    <div className="text-rose-300 text-[11px]">
+                      Couldn’t load the rendered video preview. Try Download MP4.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={createVideo}
+                  disabled={busy}
+                  className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 rounded-full bg-white text-black text-sm hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {phase === "uploading" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading…
+                    </>
+                  ) : phase === "working" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {jobStatus === "processing" ? "Rendering on worker…" : "Queued…"}
+                    </>
+                  ) : (
+                    <>
+                      <Film className="w-4 h-4" strokeWidth={2} />
+                      Create {duration}-second video
+                    </>
+                  )}
+                </button>
+              )}
+
+              <div className="mt-2 text-white/45 text-[11px] leading-relaxed">
+                Rendered by the local worker into a 1080×1920 H.264 MP4 (Android/VMOS
+                compatible) with a subtle, perfectly-looping handheld shake that matches
+                this preview. The worker must be running to process the job.
               </div>
+
+              {error && (
+                <div className="mt-2 flex items-start gap-1.5 text-rose-300 text-[11px]">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -219,14 +219,20 @@ export function PhotoEditor({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // When image loads, compute base "cover" scale and center it
+  // When a *new source* loads, compute the base "cover" scale and center it.
+  // Keyed off originalImgEl (not imgEl) so swapping in a background-removed
+  // cut-out — which has identical dimensions — preserves the user's current
+  // zoom and position instead of snapping back to fully zoomed out.
   useEffect(() => {
-    if (!imgEl) return;
-    const coverScale = Math.max(frameSize.w / imgEl.width, frameSize.h / imgEl.height);
+    if (!originalImgEl) return;
+    const coverScale = Math.max(
+      frameSize.w / originalImgEl.width,
+      frameSize.h / originalImgEl.height,
+    );
     setMinScale(coverScale);
     setScale(coverScale);
     setOffset({ x: 0, y: 0 });
-  }, [imgEl, frameSize]);
+  }, [originalImgEl, frameSize]);
 
   const clampOffset = (ox: number, oy: number, s: number) => {
     if (!imgEl) return { x: 0, y: 0 };

@@ -1,4 +1,4 @@
-# ✅ Environment Files Created
+﻿# âœ… Environment Files Created
 
 ## Files Saved
 
@@ -7,7 +7,7 @@
 
 ```env
 VITE_SUPABASE_URL=https://hadssmwwclzxfujrpatd.supabase.co
-VITE_SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
+VITE_SUPABASE_ANON_KEY=sb_secret_REDACTED
 VITE_MOCK_ID_GENERATOR=false
 ```
 
@@ -16,7 +16,7 @@ VITE_MOCK_ID_GENERATOR=false
 
 ```env
 SUPABASE_URL=https://hadssmwwclzxfujrpatd.supabase.co
-SUPABASE_SERVICE_KEY=<SUPABASE_SERVICE_ROLE_KEY>
+SUPABASE_SERVICE_KEY=sb_secret_REDACTED
 WORKER_ID=photoshop-worker-01
 POLL_INTERVAL_MS=3000
 HEARTBEAT_INTERVAL_MS=10000
@@ -29,7 +29,7 @@ HEARTBEAT_INTERVAL_MS=10000
 
 ---
 
-## ⚠️ IMPORTANT: Security Warning
+## âš ï¸ IMPORTANT: Security Warning
 
 **Please read:** `SUPABASE_SECURITY_WARNING.md`
 
@@ -51,7 +51,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZHNzbXd
 
 ---
 
-## ✅ Next Steps
+## âœ… Next Steps
 
 ### Step 1: Verify Supabase Keys (5 minutes)
 
@@ -60,8 +60,8 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZHNzbXd
 https://app.supabase.com/project/hadssmwwclzxfujrpatd/settings/api
 
 # 2. Copy the correct keys
-# - anon public → .env
-# - service_role secret → worker/.env
+# - anon public â†’ .env
+# - service_role secret â†’ worker/.env
 
 # 3. Verify key format
 # Both should start with: eyJ
@@ -91,7 +91,7 @@ npm run dev
 http://localhost:5173
 
 # Navigate to:
-Custom Tools → ID Generator
+Custom Tools â†’ ID Generator
 
 # You should see the form
 ```
@@ -160,21 +160,21 @@ cat worker/README_WORKER_SETUP.md
 
 ---
 
-## 📊 Current Status
+## ðŸ“Š Current Status
 
 | Component | Status | Next Action |
 |-----------|--------|-------------|
-| **Environment Files** | ✅ Created | Verify correct keys |
-| **Supabase Project** | ✅ Exists | Setup database tables |
-| **Frontend Code** | ✅ Ready | Test with real Supabase |
-| **Worker Code** | ✅ Ready | Deploy to Windows |
-| **PSD Template** | ❌ Not created | Design in Photoshop |
-| **PSD Scripts** | ⚠️ Generic | Generate custom scripts |
-| **End-to-End** | ❌ Not tested | Complete setup first |
+| **Environment Files** | âœ… Created | Verify correct keys |
+| **Supabase Project** | âœ… Exists | Setup database tables |
+| **Frontend Code** | âœ… Ready | Test with real Supabase |
+| **Worker Code** | âœ… Ready | Deploy to Windows |
+| **PSD Template** | âŒ Not created | Design in Photoshop |
+| **PSD Scripts** | âš ï¸ Generic | Generate custom scripts |
+| **End-to-End** | âŒ Not tested | Complete setup first |
 
 ---
 
-## 🔍 Quick Tests
+## ðŸ” Quick Tests
 
 ### Test 1: Frontend Connects to Supabase
 
@@ -225,7 +225,7 @@ node worker.js
 
 ---
 
-## 🆘 Troubleshooting
+## ðŸ†˜ Troubleshooting
 
 ### "Supabase Not Configured" Warning
 
@@ -270,22 +270,22 @@ node worker.js
 
 ---
 
-## 📚 Documentation Reference
+## ðŸ“š Documentation Reference
 
 | Document | Purpose |
 |----------|---------|
-| `SUPABASE_SECURITY_WARNING.md` | ⚠️ Read this about your keys |
+| `SUPABASE_SECURITY_WARNING.md` | âš ï¸ Read this about your keys |
 | `SUPABASE_SETUP.md` | Database setup instructions |
 | `HOW_TO_USE_CODEX_PROMPT.md` | Generate PSD scripts |
 | `CODEX_PROMPT.md` | AI prompt for scripts |
 | `NEXT_STEPS.md` | Complete workflow guide |
 | `worker/README_WORKER_SETUP.md` | Windows worker deployment |
 | `Card_Generator/README.md` | PSD template requirements |
-| `FIELD_MAPPING_REFERENCE.md` | Field → PSD layer mapping |
+| `FIELD_MAPPING_REFERENCE.md` | Field â†’ PSD layer mapping |
 
 ---
 
-## ✅ Checklist Before Going Live
+## âœ… Checklist Before Going Live
 
 Before testing the full system:
 
@@ -304,9 +304,9 @@ Before testing the full system:
 
 ---
 
-## 🎯 Priority Actions (Do These First)
+## ðŸŽ¯ Priority Actions (Do These First)
 
-### 1. ⚠️ Fix Supabase Keys (CRITICAL)
+### 1. âš ï¸ Fix Supabase Keys (CRITICAL)
 
 Go to: https://app.supabase.com/project/hadssmwwclzxfujrpatd/settings/api
 

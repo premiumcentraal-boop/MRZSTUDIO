@@ -1,8 +1,8 @@
-# ⚠️ CRITICAL SECURITY WARNING
+﻿# âš ï¸ CRITICAL SECURITY WARNING
 
 ## Issue Detected: Using Same Key for Anon and Service Role
 
-Your current configuration appears to be using the same key (`<SUPABASE_SERVICE_ROLE_KEY>`) for both:
+Your current configuration appears to be using the same key (`sb_secret_REDACTED`) for both:
 - Frontend ANON key
 - Worker SERVICE key
 
@@ -11,19 +11,19 @@ Your current configuration appears to be using the same key (`<SUPABASE_SERVICE_
 ## Why This is Dangerous
 
 ### The Service Role Key:
-- ✅ Should ONLY be used by the worker (server-side)
-- ✅ Has FULL database access (bypasses RLS policies)
-- ✅ Can read, write, delete ANY data
-- ❌ Should NEVER be exposed to the frontend
-- ❌ Should NEVER be committed to git
-- ❌ Should NEVER be shared publicly
+- âœ… Should ONLY be used by the worker (server-side)
+- âœ… Has FULL database access (bypasses RLS policies)
+- âœ… Can read, write, delete ANY data
+- âŒ Should NEVER be exposed to the frontend
+- âŒ Should NEVER be committed to git
+- âŒ Should NEVER be shared publicly
 
 ### The Anon Key:
-- ✅ Should be used by the frontend (client-side)
-- ✅ Is restricted by RLS (Row Level Security) policies
-- ✅ Can be safely exposed in browser code
-- ✅ Can be committed to git (.env should still be gitignored)
-- ✅ Has limited permissions
+- âœ… Should be used by the frontend (client-side)
+- âœ… Is restricted by RLS (Row Level Security) policies
+- âœ… Can be safely exposed in browser code
+- âœ… Can be committed to git (.env should still be gitignored)
+- âœ… Has limited permissions
 
 ## How to Get the Correct Keys
 
@@ -55,14 +55,14 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6...
 **Frontend (/.env):**
 ```env
 VITE_SUPABASE_URL=https://hadssmwwclzxfujrpatd.supabase.co
-VITE_SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY> (anon public key)
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc... (anon public key)
 VITE_MOCK_ID_GENERATOR=false
 ```
 
 **Worker (/worker/.env):**
 ```env
 SUPABASE_URL=https://hadssmwwclzxfujrpatd.supabase.co
-SUPABASE_SERVICE_KEY=<SUPABASE_SERVICE_ROLE_KEY> (service_role secret key)
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc... (service_role secret key)
 WORKER_ID=photoshop-worker-01
 POLL_INTERVAL_MS=3000
 HEARTBEAT_INTERVAL_MS=10000
@@ -73,7 +73,7 @@ HEARTBEAT_INTERVAL_MS=10000
 Both keys are JWT tokens that look like:
 
 ```
-<SUPABASE_JWT_KEY>...
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZHNzbXd3Y2x6eGZ1anJwYXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODk5NTg4MDAsImV4cCI6MjAwNTUzNDgwMH0.ABC123...
 ```
 
 They start with `eyJ` and contain dots (`.`) separating three parts.
@@ -84,23 +84,23 @@ They start with `eyJ` and contain dots (`.`) separating three parts.
 
 I've created both `.env` files with the credentials you provided, but you should:
 
-1. ✅ Go to Supabase Dashboard
-2. ✅ Get the correct `anon public` key
-3. ✅ Get the correct `service_role secret` key
-4. ✅ Update `/.env` with the anon key
-5. ✅ Update `/worker/.env` with the service role key
-6. ✅ Delete this warning file after fixing
+1. âœ… Go to Supabase Dashboard
+2. âœ… Get the correct `anon public` key
+3. âœ… Get the correct `service_role secret` key
+4. âœ… Update `/.env` with the anon key
+5. âœ… Update `/worker/.env` with the service role key
+6. âœ… Delete this warning file after fixing
 
 ## Security Best Practices
 
-### ✅ DO:
+### âœ… DO:
 - Use different keys for frontend and worker
 - Keep service role key secret
 - Add `.env` to `.gitignore` (already done)
 - Use environment variables, not hardcoded keys
 - Rotate keys if they're ever exposed
 
-### ❌ DON'T:
+### âŒ DON'T:
 - Use service role key in frontend
 - Commit `.env` files to git
 - Share service role key publicly
@@ -135,20 +135,20 @@ You can decode JWT tokens at https://jwt.io
 
 ### Test 3: Frontend Should Work
 If you're using the anon key correctly:
-- ✅ Frontend can read data (with RLS policies)
-- ❌ Frontend cannot bypass RLS policies
-- ❌ Frontend cannot access service_role functions
+- âœ… Frontend can read data (with RLS policies)
+- âŒ Frontend cannot bypass RLS policies
+- âŒ Frontend cannot access service_role functions
 
 ### Test 4: Worker Should Work  
 If you're using the service role key correctly:
-- ✅ Worker can read/write all data
-- ✅ Worker bypasses RLS policies
-- ✅ Worker can update badge_jobs table
+- âœ… Worker can read/write all data
+- âœ… Worker bypasses RLS policies
+- âœ… Worker can update badge_jobs table
 
 ## What to Do Right Now
 
 1. **Stop** if you're about to commit or deploy
-2. **Go to** Supabase Dashboard → Settings → API
+2. **Go to** Supabase Dashboard â†’ Settings â†’ API
 3. **Copy** the correct keys (they look different from `sb_secret_...`)
 4. **Update** both `.env` files
 5. **Test** the frontend in development
@@ -158,7 +158,7 @@ If you're using the service role key correctly:
 ## Need Help?
 
 If you can't find the keys:
-1. Screenshot your Supabase Dashboard → Settings → API page
+1. Screenshot your Supabase Dashboard â†’ Settings â†’ API page
 2. Look for two keys labeled "anon public" and "service_role secret"
 3. They should both start with `eyJ`
 

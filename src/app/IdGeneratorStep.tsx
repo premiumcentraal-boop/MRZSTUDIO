@@ -123,6 +123,7 @@ import { PhotoEditor, EXPORT_W, EXPORT_H, SIGNATURE_W, SIGNATURE_H } from "./com
 import { IncomingItems } from "./components/incoming-items";
 import { ProfilesBar } from "./components/profiles-bar";
 import { SignatureGenerator } from "./components/signature-generator";
+import { CameraCapture, CameraButton } from "./components/camera-capture";
 import { SuggestedToolsRow } from "./steps/nl-tools-step";
 import selfieOverlayUrl from "../imports/NEWSELFIEOVERLAY.png";
 
@@ -458,6 +459,15 @@ export default function IdGeneratorStep({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
   const [downloadProgressText, setDownloadProgressText] = useState("");
+  const [cameraMode, setCameraMode] = useState<"selfie" | "signature" | null>(null);
+
+  // Preload the employee-photo alignment overlay on mount so it's already in
+  // the browser cache and renders instantly when the PhotoEditor opens, instead
+  // of fetching (and visibly popping in ~half a second late) on first use.
+  useEffect(() => {
+    const img = new Image();
+    img.src = selfieOverlayUrl;
+  }, []);
 
   const workerOnline = workerInfo
     ? new Date().getTime() - new Date(workerInfo.last_seen_at).getTime() < 30000
@@ -1120,6 +1130,21 @@ export default function IdGeneratorStep({
           title="Position signature"
         />
       )}
+      {cameraMode && (
+        <CameraCapture
+          mode={cameraMode}
+          overlayImageSrc={cameraMode === "selfie" ? selfieOverlayUrl : undefined}
+          onCapture={(file) => {
+            setCameraMode(null);
+            if (cameraMode === "selfie") {
+              setPhotoEditorSource(file);
+            } else {
+              setSignatureEditorSource(file);
+            }
+          }}
+          onClose={() => setCameraMode(null)}
+        />
+      )}
       <div className="text-center mb-8">
         <h1 className="text-white text-3xl sm:text-4xl tracking-tight" style={{ lineHeight: 1.1 }}>
           Identity document Generator
@@ -1696,10 +1721,13 @@ export default function IdGeneratorStep({
 
               {/* Employee Photo */}
               <div className="mb-4">
-                <label className="block text-white/70 text-xs mb-1.5">
-                  Employee Photo * (PNG, JPG, WebP, max 10MB)
-                  {getFieldError("employee_photo") && <span className="text-rose-300 ml-2">• {getFieldError("employee_photo")}</span>}
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-white/70 text-xs">
+                    Employee Photo *
+                    {getFieldError("employee_photo") && <span className="text-rose-300 ml-2">• {getFieldError("employee_photo")}</span>}
+                  </label>
+                  <CameraButton onClick={() => setCameraMode("selfie")} label="Take selfie" />
+                </div>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -1729,10 +1757,13 @@ export default function IdGeneratorStep({
 
               {/* Signature */}
               <div>
-                <label className="block text-white/70 text-xs mb-1.5">
-                  Signature Image (PNG, JPG, WebP, max 10MB)
-                  {getFieldError("signature_image") && <span className="text-rose-300 ml-2">• {getFieldError("signature_image")}</span>}
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-white/70 text-xs">
+                    Signature Image
+                    {getFieldError("signature_image") && <span className="text-rose-300 ml-2">• {getFieldError("signature_image")}</span>}
+                  </label>
+                  <CameraButton onClick={() => setCameraMode("signature")} label="Photograph signature" />
+                </div>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -1797,7 +1828,7 @@ export default function IdGeneratorStep({
                 >
                   <option value="png">PNG (Recommended)</option>
                   <option value="pdf">PDF</option>
-                  <option value="psd">PSD (Source File)</option>
+                  <option value="psd" disabled>PSD (Source File) — coming soon</option>
                 </select>
               </div>
               <motion.button
@@ -1853,13 +1884,15 @@ export default function IdGeneratorStep({
                   </div>
                   <div
                     className={`shrink-0 w-9 h-5 rounded-full relative transition-colors ${
-                      formData.generate_mockups ? "bg-white" : "bg-white/15"
+                      formData.generate_mockups
+                        ? "bg-emerald-400 shadow-[0_0_10px_3px_rgba(52,211,153,0.55)]"
+                        : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
                         formData.generate_mockups
-                          ? "left-[1.125rem] bg-black"
+                          ? "left-[1.125rem] bg-white"
                           : "left-0.5 bg-white/80"
                       }`}
                     />

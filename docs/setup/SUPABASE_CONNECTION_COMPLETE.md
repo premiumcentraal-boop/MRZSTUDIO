@@ -1,4 +1,4 @@
-# ✅ Supabase Connection Complete
+﻿# âœ… Supabase Connection Complete
 
 ## Connection Test Results
 
@@ -9,31 +9,31 @@
 Supabase Connection Test
 ========================================
 
-✅ badge_jobs table accessible
-✅ worker_heartbeat table accessible
-✅ badge-inputs bucket accessible
-✅ badge-outputs bucket accessible
-✅ Job creation working (insert)
-✅ Signed URL generation working
-✅ RLS policies configured correctly
+âœ… badge_jobs table accessible
+âœ… worker_heartbeat table accessible
+âœ… badge-inputs bucket accessible
+âœ… badge-outputs bucket accessible
+âœ… Job creation working (insert)
+âœ… Signed URL generation working
+âœ… RLS policies configured correctly
 ========================================
 ```
 
 ## What's Connected
 
 ### Database Tables
-- ✅ **badge_jobs** - Stores badge generation jobs
-- ✅ **worker_heartbeat** - Tracks worker online/offline status
+- âœ… **badge_jobs** - Stores badge generation jobs
+- âœ… **worker_heartbeat** - Tracks worker online/offline status
 
 ### Storage Buckets
-- ✅ **badge-inputs** - Uploads (employee photos, signatures) - Private
-- ✅ **badge-outputs** - Results (PNG/PDF/PSD files) - Private with signed URLs
+- âœ… **badge-inputs** - Uploads (employee photos, signatures) - Private
+- âœ… **badge-outputs** - Results (PNG/PDF/PSD files) - Private with signed URLs
 
 ### Security
-- ✅ Using anon key only (no service key exposure)
-- ✅ RLS policies active
-- ✅ Storage buckets private
-- ✅ Signed URLs for downloads
+- âœ… Using anon key only (no service key exposure)
+- âœ… RLS policies active
+- âœ… Storage buckets private
+- âœ… Signed URLs for downloads
 
 ## Configuration
 
@@ -42,7 +42,7 @@ Supabase Connection Test
 **Environment Variables (.env):**
 ```env
 VITE_SUPABASE_URL=https://hadssmwwclzxfujrpatd.supabase.co
-VITE_SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
+VITE_SUPABASE_ANON_KEY=sb_secret_REDACTED
 VITE_MOCK_ID_GENERATOR=false
 ```
 
@@ -79,7 +79,7 @@ const { data, error } = await supabase
   .eq('id', jobId)
   .single();
 
-// Status flow: queued → processing → complete
+// Status flow: queued â†’ processing â†’ complete
 ```
 
 ### 4. Check Worker Status
@@ -108,39 +108,39 @@ const { data, error } = await supabase.storage
 ## Data Flow
 
 ```
-┌─────────────────────────────────────────────┐
-│ Frontend: ID Generator Form                 │
-│ - Collects 19 employee badge fields        │
-│ - Uploads photo/signature to badge-inputs  │
-│ - Creates job in badge_jobs                │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ↓ Job created (status: queued)
-                  │
-┌─────────────────┴───────────────────────────┐
-│ Supabase Database: badge_jobs               │
-│ - Stores complete job payload              │
-│ - Worker polls for queued jobs             │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ↓ Worker claims job (status: processing)
-                  │
-┌─────────────────┴───────────────────────────┐
-│ Windows Worker (not yet deployed)          │
-│ - Downloads photos from badge-inputs       │
-│ - Processes with Photoshop                 │
-│ - Uploads results to badge-outputs         │
-│ - Updates job status to complete           │
-└─────────────────┬───────────────────────────┘
-                  │
-                  ↓ Job complete
-                  │
-┌─────────────────┴───────────────────────────┐
-│ Frontend: Download Results                  │
-│ - Detects status: complete                 │
-│ - Creates signed URLs                      │
-│ - User downloads PNG/PDF/PSD               │
-└─────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Frontend: ID Generator Form                 â”‚
+â”‚ - Collects 19 employee badge fields        â”‚
+â”‚ - Uploads photo/signature to badge-inputs  â”‚
+â”‚ - Creates job in badge_jobs                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                  â”‚
+                  â†“ Job created (status: queued)
+                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Supabase Database: badge_jobs               â”‚
+â”‚ - Stores complete job payload              â”‚
+â”‚ - Worker polls for queued jobs             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                  â”‚
+                  â†“ Worker claims job (status: processing)
+                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Windows Worker (not yet deployed)          â”‚
+â”‚ - Downloads photos from badge-inputs       â”‚
+â”‚ - Processes with Photoshop                 â”‚
+â”‚ - Uploads results to badge-outputs         â”‚
+â”‚ - Updates job status to complete           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                  â”‚
+                  â†“ Job complete
+                  â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Frontend: Download Results                  â”‚
+â”‚ - Detects status: complete                 â”‚
+â”‚ - Creates signed URLs                      â”‚
+â”‚ - User downloads PNG/PDF/PSD               â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ## Test the Connection
@@ -157,14 +157,14 @@ http://localhost:5173
 
 ### Step 3: Navigate to ID Generator
 ```
-Custom Tools → ID Generator
+Custom Tools â†’ ID Generator
 ```
 
 ### Step 4: Check Connection
 You should see:
-- ✅ No "Supabase Not Configured" warning
-- ✅ Worker status indicator (shows "offline" until worker deployed)
-- ✅ Form with all 19 fields ready
+- âœ… No "Supabase Not Configured" warning
+- âœ… Worker status indicator (shows "offline" until worker deployed)
+- âœ… Form with all 19 fields ready
 
 ### Step 5: Test Job Creation
 1. Fill out the form with test data:
@@ -179,10 +179,10 @@ You should see:
 3. Click "Generate Badge"
 
 4. Check:
-   - ✅ Photo uploads to Supabase
-   - ✅ Job created in database
-   - ✅ Status shows "queued"
-   - ✅ No errors in browser console
+   - âœ… Photo uploads to Supabase
+   - âœ… Job created in database
+   - âœ… Status shows "queued"
+   - âœ… No errors in browser console
 
 ### Step 6: Verify in Supabase Dashboard
 
@@ -199,12 +199,12 @@ You should see:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Frontend form | ✅ Working | All 19 fields, validation |
-| Photo upload | ✅ Working | Uploads to badge-inputs |
-| Job creation | ✅ Working | Inserts into badge_jobs |
-| Job polling | ✅ Working | Reads status every 3s |
-| Worker status | ✅ Working | Shows "offline" (no worker yet) |
-| Download buttons | ⚠️ Waiting | Shows when worker completes job |
+| Frontend form | âœ… Working | All 19 fields, validation |
+| Photo upload | âœ… Working | Uploads to badge-inputs |
+| Job creation | âœ… Working | Inserts into badge_jobs |
+| Job polling | âœ… Working | Reads status every 3s |
+| Worker status | âœ… Working | Shows "offline" (no worker yet) |
+| Download buttons | âš ï¸ Waiting | Shows when worker completes job |
 
 ## What's Next
 
@@ -261,34 +261,34 @@ cat worker/README_WORKER_SETUP.md
 ## Current System Status
 
 ```
-Frontend     ████████████████████ 100% ✅ CONNECTED TO SUPABASE
-Data Model   ████████████████████ 100% ✅ COMPLETE
-Worker Core  ████████████████████ 100% ✅ READY (not deployed)
-Supabase     ████████████████████ 100% ✅ CONNECTED & TESTED
-PSD Template ░░░░░░░░░░░░░░░░░░░░   0% ❌ NOT CREATED
-PSD Scripts  ████░░░░░░░░░░░░░░░░  30% ⚠️ GENERIC (need custom)
-Worker Deploy░░░░░░░░░░░░░░░░░░░░   0% ❌ NOT DEPLOYED
-End-to-End   ░░░░░░░░░░░░░░░░░░░░   0% ❌ NOT TESTED
+Frontend     â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆ 100% âœ… CONNECTED TO SUPABASE
+Data Model   â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆ 100% âœ… COMPLETE
+Worker Core  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆ 100% âœ… READY (not deployed)
+Supabase     â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆ 100% âœ… CONNECTED & TESTED
+PSD Template â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘   0% âŒ NOT CREATED
+PSD Scripts  â–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘  30% âš ï¸ GENERIC (need custom)
+Worker Deployâ–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘   0% âŒ NOT DEPLOYED
+End-to-End   â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘   0% âŒ NOT TESTED
 
 Overall: 70% Complete
 ```
 
 ## Security Verified
 
-✅ **No service key in frontend**
+âœ… **No service key in frontend**
 - Only using VITE_SUPABASE_ANON_KEY
 - Service key is only in worker/.env (not deployed yet)
 - Safe for browser exposure
 
-✅ **Private storage buckets**
+âœ… **Private storage buckets**
 - badge-inputs: Private (RLS protected)
 - badge-outputs: Private (signed URLs only)
 
-✅ **RLS policies active**
+âœ… **RLS policies active**
 - badge_jobs: Can insert and read own jobs
 - worker_heartbeat: Can read worker status
 
-✅ **Scoped to internal badges only**
+âœ… **Scoped to internal badges only**
 - Safety notices in UI
 - "Internal Company Badge Generator" title
 - No official document features
@@ -342,21 +342,21 @@ cat FIELD_MAPPING_REFERENCE.md # Field mappings
 
 ## Success Metrics
 
-✅ Connection test passes all 6 tests
-✅ Frontend loads without Supabase errors
-✅ Can create jobs via form
-✅ Jobs appear in badge_jobs table
-✅ Photos upload to badge-inputs bucket
-✅ Worker status displays (shows offline)
+âœ… Connection test passes all 6 tests
+âœ… Frontend loads without Supabase errors
+âœ… Can create jobs via form
+âœ… Jobs appear in badge_jobs table
+âœ… Photos upload to badge-inputs bucket
+âœ… Worker status displays (shows offline)
 
 ## Next File to Read
 
-**→ HOW_TO_USE_CODEX_PROMPT.md**
+**â†’ HOW_TO_USE_CODEX_PROMPT.md**
 
 This will guide you through creating the PSD template and generating the exact Photoshop automation scripts for your badge design.
 
 ---
 
-**Status:** ✅ **Supabase integration complete and tested**
+**Status:** âœ… **Supabase integration complete and tested**
 
 Your app is now connected to Supabase and ready to create badge jobs. The final step is deploying the Windows worker with Photoshop automation scripts.
