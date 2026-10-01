@@ -1,0 +1,54 @@
+name: MRZ Studio Local release
+on:
+  pull_request:
+  push:
+    tags: ['mrz-local-v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: node scripts/mrz.cjs build
+      - run: npm test
+      - run: npm --prefix app run test:all
+      - run: npm --prefix app audit --audit-level=high
+      - run: npm run package:release
+      - run: npm run verify:release
+      - name: Match release tag to package version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $version = (Get-Content release/version.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_NAME -ne "mrz-local-v$version") { throw 'Tag and package version differ.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mrz-studio-local
+          path: artifacts/releases/*
+          if-no-files-found: error
+  publish:
+    if: startsWith(github.ref, 'refs/tags/mrz-local-v')
+    needs: verify
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mrz-studio-local
+          path: release-assets
+      - name: Publish verified local package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: pwsh
+        run: |
+          $version = (Get-Content release-assets/mrz-local-release.json -Raw | ConvertFrom-Json).version
+          gh release create $env:GITHUB_REF_NAME --title "MRZ Studio Local $version" --notes "Windows local release. Extract once, then run Start-MRZ-Local.cmd. Future updates: mrz update. Your local settings, jobs, outputs and templates are preserved." release-assets/*
