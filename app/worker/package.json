@@ -1,0 +1,19 @@
+{
+  "name": "employeeid-badge-worker",
+  "version": "1.1.0",
+  "description": "Local filesystem worker for company badge generation with Photoshop",
+  "main": "worker.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node worker.js",
+    "image-to-video": "node scripts/image-to-video.cjs",
+    "test": "echo \"Run manual tests with Photoshop scripts or LOCAL_DRY_RUN=1\""
+  },
+  "keywords": ["photoshop", "badge", "automation", "worker"],
+  "author": "",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
