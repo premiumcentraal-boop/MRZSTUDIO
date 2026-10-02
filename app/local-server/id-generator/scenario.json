@@ -1,0 +1,10 @@
+{
+  "run": {"runId":"run_id_generator_demo","taskId":"task_id_generator_demo","rowId":"row_demo","app":"com.example.employee"},
+  "steps": [
+    {"emit":"file.out","file":"fixture-photo.png","mime":"image/png","data":{"assetId":"photo-demo","name":"fixture-photo.png"}},
+    {"emit":"x.id-generator.generate","data":{"requestId":"employee-demo","photoId":"photo-demo","employee":{"first_name":"Sam","last_name":"Example","birth_date":"1990-06-14","valid_from":"2026-10-01","doc_number":"","personal_number":"","height_cm":188,"city_of_birth":"Custom Town","export_format":"png"},"signature":{"font":"paul-signature","name_mode":"first_name_only"},"photo":{"remove_background":false,"zoom":1,"x":0.5,"y":0.5}}},
+    {"await":"value.in","match":{"requestId":"employee-demo"},"timeoutS":600},
+    {"await":"file.in","match":{"requestId":"employee-demo","output":"front","kind":"image"},"timeoutS":120},
+    {"await":"file.in","match":{"requestId":"employee-demo","output":"back","kind":"image"},"timeoutS":120}
+  ]
+}

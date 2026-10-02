@@ -19,6 +19,7 @@ const {
   readJson,
 } = require("../local-server/paths");
 const { detectPhotoshop, photoshopGuidance, invokeCommand } = require("../local-server/photoshop");
+const {jobContext,entryScript} = require('./photoshop-dispatch.cjs');
 const { dryRunBadgePng } = require("../local-server/png");
 const {
   loadJob,
@@ -249,6 +250,8 @@ async function writeDryRunOutputs(job) {
 
 async function prepareInputJson(job, jobFolder) {
   await cleanCurrentJob();
+  const context=jobContext(PATHS,job.id);
+  fs.mkdirSync(context.folder,{recursive:true});
 
   const photoSrc = job.employee_photo_path
     ? path.join(jobFolder, path.basename(job.employee_photo_path))
@@ -261,15 +264,22 @@ async function prepareInputJson(job, jobFolder) {
   let signaturePath = "";
 
   if (photoSrc && fs.existsSync(photoSrc)) {
-    photoPath = path.join(PATHS.workerCurrentJob, path.basename(photoSrc));
+    photoPath = path.join(context.folder, path.basename(photoSrc));
     fs.copyFileSync(photoSrc, photoPath);
   }
   if (sigSrc && fs.existsSync(sigSrc)) {
-    signaturePath = path.join(PATHS.workerCurrentJob, path.basename(sigSrc));
+    signaturePath = path.join(context.folder, path.basename(sigSrc));
     fs.copyFileSync(sigSrc, signaturePath);
   }
 
   const input = convertJobToPhotoshopInput(job, photoPath, signaturePath);
+  // Each job opens its own PSD, never an already-open owner template.
+  const template = path.join(PATHS.workerTemplates, path.basename(job.template || 'EmployeeID.psd'));
+  if (!isDryRun()) {
+    const workCopy = path.join(context.folder, 'EmployeeID_work.psd');
+    fs.copyFileSync(template, workCopy);
+    input.template = workCopy.replace(/\\/g, '/');
+  }
   const errors = validatePhotoshopInput(input);
   if (errors.length > 0) {
     throw new Error(`Invalid Photoshop input: ${errors.join(", ")}`);
@@ -277,6 +287,7 @@ async function prepareInputJson(job, jobFolder) {
 
   const inputJsonPath = path.join(PATHS.workerCurrentJob, "input.json");
   fs.writeFileSync(inputJsonPath, JSON.stringify(input, null, 2), "utf8");
+  fs.writeFileSync(context.input_path, JSON.stringify(input, null, 2), "utf8");
   log(`wrote ${inputJsonPath}`);
   return input;
 }
@@ -314,7 +325,11 @@ function isReportError(report) {
 }
 
 function spawnPhotoshop(exe, scriptPath, opts) {
-  const child = spawn(exe, [scriptPath], {
+  const executable = process.platform === 'win32' ? 'powershell.exe' : exe;
+  const args = process.platform === 'win32'
+    ? ['-NoProfile', '-NonInteractive', '-STA', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'run-photoshop.ps1'), '-ScriptPath', scriptPath, '-PhotoshopExe', exe]
+    : [scriptPath];
+  const child = spawn(executable, args, {
     cwd: opts.cwd,
     env: opts.env,
     windowsHide: true,
@@ -425,10 +440,13 @@ function photoshopEnv(psPath) {
 }
 
 async function runPhotoshopScript(ps, job, options) {
-  const scriptPath = path.join(PATHS.workerScripts, options.scriptName);
-  if (!(await fileExists(scriptPath))) {
-    throw new Error(`Photoshop script missing: ${scriptPath}`);
+  const sourceScript = path.join(PATHS.workerScripts, options.scriptName);
+  if (!(await fileExists(sourceScript))) {
+    throw new Error(`Photoshop script missing: ${sourceScript}`);
   }
+  const context=jobContext(PATHS,job.id);
+  const scriptPath=path.join(context.folder,options.scriptName);
+  fs.writeFileSync(scriptPath,entryScript(context,sourceScript),'utf8');
 
   const reportPath = path.join(PATHS.workerOutput, job.id, options.reportName);
   try {
@@ -454,7 +472,8 @@ async function runPhotoshopScript(ps, job, options) {
   });
   const processHint = handle.processPromise.then((result) => {
     if (result && result.code && result.code !== 0) {
-      log(`${options.label} Photoshop process exited with code ${result.code}`);
+      const report = readJson(reportPath);
+      throw new Error(isReportError(report) ? reportErrorText(report) : `${options.label}: Photoshop did not accept the job script (code ${result.code}). Open Photoshop and clear any sign-in, subscription or error dialog.`);
     }
     return new Promise(() => {});
   });
@@ -505,6 +524,7 @@ function writeIdcardprintInput(job, resultPngPath) {
   fs.mkdirSync(PATHS.workerCurrentJob, { recursive: true });
   const inputPath = path.join(PATHS.workerCurrentJob, "idcardprint_input.json");
   fs.writeFileSync(inputPath, JSON.stringify(input, null, 2), "utf8");
+  fs.writeFileSync(jobContext(PATHS,job.id).sidecar_path, JSON.stringify(input, null, 2), "utf8");
   log(`wrote ${inputPath}`);
   return input;
 }
@@ -572,7 +592,7 @@ async function runPhotoshop(job) {
     reportName: "job_report.json",
     label: "EmployeeID",
     timeout: PHOTOSHOP_TIMEOUT_MS,
-    failLoud: false,
+    failLoud: true,
   });
 
   await publishOutputs(job.id);
@@ -622,7 +642,7 @@ async function processClaimed(claimed) {
   const job = claimed.job;
   const jobFolder = path.join(PATHS.processing, job.id);
   log(`Processing job ${job.id}`);
-  log(`Employee: ${job.input_json?.first_name || "?"} ${job.input_json?.last_name || "?"}`);
+  log('Employee image export started.');
   log(`Export format: ${job.input_json?.export_format || "png"}`);
 
   try {
@@ -639,6 +659,9 @@ async function processClaimed(claimed) {
   } catch (error) {
     await finishJob(job, false, error.message || String(error));
   } finally {
+    // Photoshop may open a queued entry after an Adobe dialog is dismissed.
+    // Its immutable input stays available, but a finished job never runs again.
+    writeJson(jobContext(PATHS,job.id).terminal_path,{job_id:job.id,finished_at:nowIso()});
     try {
       await cleanCurrentJob();
     } catch (e) {

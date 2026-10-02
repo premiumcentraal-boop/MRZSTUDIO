@@ -34,6 +34,7 @@ export default defineConfig({
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv', '**/*.ttf', '**/*.otf'],
 
+  build: { rollupOptions: { input: { main: path.resolve(__dirname, "index.html"), renderer: path.resolve(__dirname, "id-generator-renderer.html") } } },
   server: {
     port: 5173,
     strictPort: true,

@@ -11,7 +11,9 @@ if ((Test-Path -LiteralPath $modulesPath) -and ((Get-Item -LiteralPath $modulesP
 $stampPath = Join-Path $modulesPath '.mrz-lock-sha256'
 $installedHash = if (Test-Path -LiteralPath $stampPath) { (Get-Content -LiteralPath $stampPath -Raw).Trim() } else { '' }
 if ($installedHash -ne $lockHash -or -not (Test-Path -LiteralPath (Join-Path $modulesPath 'vite/bin/vite.js'))) {
-  & $npmCommand.Source --prefix (Join-Path $studioRoot 'app') ci
+  # The lock was created with the app's legacy peer resolution. Releases omit .npmrc,
+  # so make the same resolution explicit for clean source builds and CI.
+  & $npmCommand.Source --prefix (Join-Path $studioRoot 'app') ci --legacy-peer-deps
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   [IO.File]::WriteAllText($stampPath, $lockHash)
 }

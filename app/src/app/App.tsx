@@ -33,6 +33,7 @@ import {
 // races. A plain import removes the boundary and the race entirely.
 import IdGeneratorStep from "./IdGeneratorStep";
 import McpConnectionsSettings from "./steps/mcp-connections-settings";
+import IdGeneratorPlugin from './steps/id-generator-plugin';
 import { Flag } from "./components/flag";
 import { PremiumLiquidCard, type PremiumLiquidVariant } from "./components/premium-liquid-card";
 import { NLToolsStep, generateDocNumber, generateBSN } from "./steps/nl-tools-step";
@@ -595,9 +596,11 @@ function SpectralBackground() {
 
 /* --------------------------------- App ----------------------------------- */
 
-type Step = "type" | "preset" | "details" | "result" | "nl-tools" | "custom-hub" | "id-generator" | "mcp-settings";
+type Step = "type" | "preset" | "details" | "result" | "nl-tools" | "custom-hub" | "id-generator" | "mcp-settings" | "id-plugin-settings" | "id-plugin-panel";
 
 const STEP_TO_PATH: Record<Step, string> = {
+  'id-plugin-settings': '/settings/id-generator',
+  'id-plugin-panel': '/plugins/id-generator',
   "mcp-settings": "/settings/mcp",
   "type": "/",
   "custom-hub": "/tools",
@@ -609,6 +612,10 @@ const STEP_TO_PATH: Record<Step, string> = {
 };
 
 const PATH_TO_STEP: Record<string, Step> = {
+  '/settings/id-generator': 'id-plugin-settings',
+  '/settings/id-generator/': 'id-plugin-settings',
+  '/plugins/id-generator': 'id-plugin-panel',
+  '/plugins/id-generator/': 'id-plugin-panel',
   "/settings/mcp": "mcp-settings",
   "/settings/mcp/": "mcp-settings",
   "/": "type",
@@ -680,6 +687,8 @@ export function AppShell() {
     setPresetId("");
   };
 
+  if (step === 'id-plugin-panel' && new URLSearchParams(location.search).get('embed') === '1') return <main className="min-h-screen bg-[#050505] text-white p-4"><IdGeneratorPlugin panel /></main>;
+
   return (
     <div className="w-full relative overflow-x-hidden" style={{ background: "#050505", minHeight: "100lvh" }}>
       <SpectralBackground />
@@ -712,6 +721,8 @@ export function AppShell() {
           <StepIndicator step={step} onNavigate={setStep} />
 
           <AnimatePresence mode="wait">
+            {step === 'id-plugin-settings' && <Stage key="id-plugin-settings"><IdGeneratorPlugin /></Stage>}
+            {step === 'id-plugin-panel' && <Stage key="id-plugin-panel"><IdGeneratorPlugin panel /></Stage>}
             {step === "mcp-settings" && (
               <Stage key="mcp-settings"><McpConnectionsSettings /></Stage>
             )}
@@ -864,7 +875,7 @@ function NavDrawer({
   }, [open, onClose]);
 
   const sections: { label: string; items: { id: string; label: string; sub?: string; action: () => void; active: boolean }[] }[] = [
-    { label: "Settings", items: [{ id: "mcp-settings", label: "MCP connections", sub: "Studio & Cyclone Glass", action: () => onNavigate("mcp-settings"), active: step === "mcp-settings" }] },
+    { label: "Settings", items: [{ id: "mcp-settings", label: "MCP connections", sub: "Studio & Cyclone Glass", action: () => onNavigate("mcp-settings"), active: step === "mcp-settings" }, {id:'id-plugin-settings',label:'ID Generator plugin',sub:'Cyclone Ports · local PC',action:()=>onNavigate('id-plugin-settings'),active:step==='id-plugin-settings'}] },
     {
       label: "Documents",
       items: [
@@ -1031,7 +1042,11 @@ function MobileStepBar({
 
 function StepIndicator({ step, onNavigate }: { step: Step; onNavigate: (s: Step) => void }) {
   const steps: { id: Step; label: string }[] =
-    step === "mcp-settings"
+    step === 'id-plugin-settings'
+      ? [{id:'type',label:'Home'},{id:'id-plugin-settings',label:'ID Generator plugin'}]
+      : step === 'id-plugin-panel'
+      ? [{id:'type',label:'Home'},{id:'id-plugin-settings',label:'Plugin settings'},{id:'id-plugin-panel',label:'ID Generator'}]
+      : step === "mcp-settings"
       ? [{ id: "type", label: "Home" }, { id: "mcp-settings", label: "MCP connections" }]
       : step === "custom-hub"
       ? [

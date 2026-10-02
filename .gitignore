@@ -39,3 +39,8 @@ app/worker/local-worker/logs/
 app/worker/local-worker/templates/*.psd
 app/worker/local-worker/templates/*.psb
 app/worker/local-worker/templates/*.json
+artifacts/ports-sdk-source/
+artifacts/id-generator-acceptance/
+control/id-generator/
+app/local-server/id-generator/model.cjs
+app/local-server/id-generator/runtime/

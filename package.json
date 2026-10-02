@@ -1,8 +1,10 @@
 {
   "name": "mrz-studio-local",
   "private": true,
-  "version": "7.1.0",
-  "engines": { "node": ">=22" },
+  "version": "7.2.1",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node scripts/mrz.cjs start",
     "stop": "node scripts/mrz.cjs stop",

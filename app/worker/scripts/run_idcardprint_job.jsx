@@ -14,11 +14,12 @@ ExtendScript ES3: no String.trim, no arrow functions, no const/let.
 
 app.bringToFront();
 
-var BASE_PATH = resolveAutomationBasePath("C:/EmployeeBadgeAutomation");
+var JOB_CONTEXT = $.global.CYCLONE_JOB_CONTEXT || null;
+var BASE_PATH = JOB_CONTEXT ? JOB_CONTEXT.base_path : resolveAutomationBasePath("C:/EmployeeBadgeAutomation");
 var TEMPLATE_DIR = BASE_PATH + "/templates";
 var DEFAULT_TEMPLATE_NAME = "IDCARDPRINT.psd";
-var SIDECAR_JSON_PATH = BASE_PATH + "/current-job/idcardprint_input.json";
-var FALLBACK_JSON_PATH = BASE_PATH + "/current-job/input.json";
+var SIDECAR_JSON_PATH = JOB_CONTEXT ? JOB_CONTEXT.sidecar_path : BASE_PATH + "/current-job/idcardprint_input.json";
+var FALLBACK_JSON_PATH = JOB_CONTEXT ? JOB_CONTEXT.input_path : BASE_PATH + "/current-job/input.json";
 var OUTPUT_BASE = BASE_PATH + "/output";
 var LOG_DIR = BASE_PATH + "/logs";
 
@@ -146,7 +147,9 @@ function resolveAutomationBasePath(defaultPath) {
   return defaultPath;
 }
 
+var PREEXISTING_DOCUMENT_IDS = {};
 function main() {
+  for (var openedIndex = 0; openedIndex < app.documents.length; openedIndex++) PREEXISTING_DOCUMENT_IDS[app.documents[openedIndex].id] = true;
   var doc = null;
   var input = null;
   try {
@@ -251,7 +254,6 @@ function main() {
       logLine("Could not write error report: " + errorToString(reportError));
     }
 
-    throw error;
   } finally {
     app.displayDialogs = ORIGINAL_DISPLAY_DIALOGS;
   }
@@ -366,8 +368,7 @@ function replaceLayerWithImage(doc, layer, imagePath, layerName) {
 function replaceSmartObjectByEditing(parentDoc, smartLayer, imagePath, layerName) {
   app.activeDocument = parentDoc;
   parentDoc.activeLayer = smartLayer;
-  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
-  var subDoc = app.activeDocument;
+  var subDoc = openSmartObjectDocument(app.activeDocument);
   logLine("Opened " + layerName + " smart object as " + subDoc.name + ".");
 
   try {
@@ -696,9 +697,25 @@ function closeDocumentNoSave(doc) {
   doc.close(SaveOptions.DONOTSAVECHANGES);
 }
 
+
+function openSmartObjectDocument(parentDoc) {
+  var parentId = parentDoc.id;
+  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
+  for (var attempt = 0; attempt < 100; attempt++) {
+    app.refresh();
+    if (app.documents.length && app.activeDocument.id !== parentId) {
+      if (PREEXISTING_DOCUMENT_IDS[app.activeDocument.id]) throw new Error("The smart object is already open in another document. Close it before retrying.");
+      return app.activeDocument;
+    }
+    $.sleep(100);
+  }
+  throw new Error("Photoshop did not open the smart object. Retry after Photoshop is ready.");
+}
+
 function closeAllOpenDocumentsNoSave() {
-  while (app.documents.length > 0) {
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+  for (var i = app.documents.length - 1; i >= 0; i--) {
+    var opened = app.documents[i];
+    if (!PREEXISTING_DOCUMENT_IDS[opened.id]) opened.close(SaveOptions.DONOTSAVECHANGES);
   }
 }
 
@@ -781,4 +798,4 @@ function timestamp() {
     "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
 
-main();
+if (new File(FALLBACK_JSON_PATH).exists && (!JOB_CONTEXT || !new File(JOB_CONTEXT.terminal_path).exists)) main();

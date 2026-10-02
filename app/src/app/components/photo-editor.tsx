@@ -1,3 +1,4 @@
+import { removeEmployeeBackground } from '../../lib/employee-photo';
 import { useEffect, useRef, useState } from "react";
 import { X, Check, RotateCcw, Sparkles, Loader2 } from "lucide-react";
 import { EXPORT_H, EXPORT_W, SIGNATURE_H, SIGNATURE_W } from "../../lib/image-export-sizes";
@@ -43,6 +44,7 @@ type PhotoEditorProps = {
    * baked into the export — purely a visual guide.
    */
   overlayImageSrc?: string;
+  initialCrop?: {zoom:number;x:number;y:number;remove_background:boolean};
 };
 
 export function PhotoEditor({
@@ -56,6 +58,7 @@ export function PhotoEditor({
   bgRemoval = "selfie",
   fitMode = "cover",
   overlayImageSrc,
+  initialCrop,
 }: PhotoEditorProps) {
   const targetW = exportWidth;
   const targetH = exportHeight;
@@ -131,52 +134,7 @@ export function PhotoEditor({
     setBgRemoving(true);
     setBgError(null);
     try {
-      const { FilesetResolver, ImageSegmenter } = await import("@mediapipe/tasks-vision");
-      const fileset = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm",
-      );
-      const segmenter = await ImageSegmenter.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite",
-          delegate: "GPU",
-        },
-        runningMode: "IMAGE",
-        outputCategoryMask: true,
-        outputConfidenceMasks: false,
-      });
-
-      const w = imgEl.naturalWidth;
-      const h = imgEl.naturalHeight;
-      const out = document.createElement("canvas");
-      out.width = w;
-      out.height = h;
-      const octx = out.getContext("2d");
-      if (!octx) throw new Error("Canvas 2D context unavailable");
-      octx.drawImage(imgEl, 0, 0, w, h);
-      const frame = octx.getImageData(0, 0, w, h);
-
-      const result = segmenter.segment(imgEl);
-      const mask = result.categoryMask;
-      if (!mask) throw new Error("Segmentation returned no mask");
-      const maskData = mask.getAsUint8Array();
-
-      // Selfie segmenter category mask: 0 = person, non-zero = background.
-      for (let i = 0; i < maskData.length; i++) {
-        if (maskData[i] !== 0) frame.data[i * 4 + 3] = 0;
-      }
-      octx.putImageData(frame, 0, 0);
-      mask.close();
-      result.close?.();
-      segmenter.close();
-
-      const dataUrl = out.toDataURL("image/png");
-      const next = new Image();
-      await new Promise<void>((resolve, reject) => {
-        next.onload = () => resolve();
-        next.onerror = () => reject(new Error("Failed to reload cut-out image"));
-        next.src = dataUrl;
-      });
+      const next = await removeEmployeeBackground(imgEl);
       setImgEl(next);
       setBgRemoved(true);
     } catch (err) {
@@ -190,12 +148,18 @@ export function PhotoEditor({
   useEffect(() => {
     const url = URL.createObjectURL(sourceFile);
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       setImgEl(img);
       setOriginalImgEl(img);
       setBgRemoved(false);
       setBgError(null);
       setLuminance(0);
+      if(initialCrop?.remove_background && bgRemoval === 'selfie'){
+        setBgRemoving(true);
+        try{const cutout=await removeEmployeeBackground(img);setImgEl(cutout);setBgRemoved(true);}
+        catch(err){setBgError(err instanceof Error ? err.message : 'Background removal failed');}
+        finally{setBgRemoving(false);}
+      }
     };
     img.src = url;
     return () => URL.revokeObjectURL(url);
@@ -233,8 +197,9 @@ export function PhotoEditor({
     const rh = frameSize.h / originalImgEl.height;
     const baseScale = fitMode === "contain" ? Math.min(rw, rh) : Math.max(rw, rh);
     setMinScale(baseScale);
-    setScale(baseScale);
-    setOffset({ x: 0, y: 0 });
+    const startingScale=baseScale*(initialCrop?.zoom||1);
+    setScale(startingScale);
+    setOffset({x:(0.5-(initialCrop?.x??0.5))*Math.max(0,originalImgEl.width*startingScale-frameSize.w),y:(0.5-(initialCrop?.y??0.5))*Math.max(0,originalImgEl.height*startingScale-frameSize.h)});
   }, [originalImgEl, frameSize, fitMode]);
 
   const clampOffset = (ox: number, oy: number, s: number) => {

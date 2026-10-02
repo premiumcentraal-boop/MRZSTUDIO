@@ -1,13 +1,17 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
+const { performance } = require("node:perf_hooks");
 // Windows antivirus and readers can briefly deny a rename. Keep the old file
 // intact, retry a bounded interval, and never use delete-then-write as a fallback.
 function rename(from, to) {
+  const deadline = performance.now() + 5000;
+  const wait = new Int32Array(new SharedArrayBuffer(4));
   for (let attempt = 0; ; attempt++) {
     try { fs.renameSync(from, to); return; }
     catch (error) {
-      if (process.platform !== "win32" || !["EPERM", "EBUSY", "EACCES"].includes(error.code) || attempt >= 8) throw error;
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25 * (attempt + 1));
+      const remaining = deadline - performance.now();
+      if (process.platform !== "win32" || !["EPERM", "EBUSY", "EACCES"].includes(error.code) || remaining <= 0) throw error;
+      Atomics.wait(wait, 0, 0, Math.min(remaining, 200, 25 * (attempt + 1)));
     }
   }
 }

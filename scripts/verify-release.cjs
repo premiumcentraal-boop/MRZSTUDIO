@@ -25,11 +25,25 @@ async function verify() {
     if (!health.ready || !health.api.worker.online || health.ui.version !== manifest.version) throw Error("Fresh package failed startup checks.");
     const page = await fetch(`http://127.0.0.1:${ui}/settings/mcp`);
     if (!page.ok || !(await page.text()).includes('<div id="root">')) throw Error("Fresh settings route failed.");
-    const asset = Object.keys(manifest.files).find(n => /^app\/dist\/assets\/index-.*\.js$/.test(n));
+    const asset = Object.keys(manifest.files).find(n => /^app\/dist\/assets\/(?:index|main)-.*\.js$/.test(n));
     if (!asset || !(await fetch(`http://127.0.0.1:${ui}/` + asset.replace("app/dist/", ""))).ok) throw Error("Fresh UI asset failed.");
+    const plugin = await (await fetch(`http://127.0.0.1:${api}/cyclone-plugin.json`)).json();
+    if (plugin.name !== 'id-generator' || plugin.contract !== 'cyclone.ports/1' || plugin.serves.length !== 4) throw Error('Fresh Ports manifest failed.');
+    const schema = await (await fetch(`http://127.0.0.1:${api}/api/id-generator/schema`)).json();
+    if (!schema.schema.properties.employee.properties.height_cm) throw Error('Fresh agent schema failed.');
+    const renderer = require(c.path.join(root, 'app/local-server/id-generator/render.js'));
+    try {
+      const photo = c.fs.readFileSync(c.path.join(root, 'app/local-server/id-generator/fixture-photo.png'));
+      const rendered = await renderer.render({photo:photo.toString('base64'),mime:'image/png',signatureText:'Sam',signature:{font:'paul-signature',name_mode:'first_name_only',text:'',scale:1,x:0,y:0},photoSettings:{remove_background:false,zoom:1,x:0.5,y:0.5}}, `http://127.0.0.1:${ui}`);
+      if(rendered.photo.readUInt32BE(16)!==2421||rendered.photo.readUInt32BE(20)!==3292||rendered.signature.readUInt32BE(16)!==420||rendered.signature.readUInt32BE(20)!==123) throw Error('Fresh package image renderer failed.');
+      try{await renderer.render({photo:photo.toString('base64'),mime:'image/png',signatureText:'Sam',signature:{font:'paul-signature',name_mode:'first_name_only',text:'',scale:1,x:0,y:0},photoSettings:{remove_background:true,zoom:1,x:0.5,y:0.5}}, `http://127.0.0.1:${ui}`);}catch(e){if(!/No person was found|Photo crop is empty/.test(e.message))throw Error('Fresh offline segmentation failed: '+e.message);}
+      const transparent='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      let rejected=false;try{await renderer.render({photo:transparent,mime:'image/png',signatureText:'Sam',signature:{font:'paul-signature',name_mode:'first_name_only',text:'',scale:1,x:0,y:0},photoSettings:{remove_background:false,zoom:1,x:0.5,y:0.5}}, `http://127.0.0.1:${ui}`);}catch(e){rejected=/Photo crop is empty/.test(e.message);}
+      if(!rejected)throw Error('Fresh transparent-photo guard failed.');
+    } finally { await renderer.close(); }
     result = await run(["stop", "--json"]);
     if (result.exit || !JSON.parse(result.output).stopped) throw Error("Fresh package failed stop checks.");
-    const report = { passed: true, noNpmNeeded: true, version: manifest.version, worker: true, settingsRoute: true, asset: true, stopped: true, at: new Date().toISOString() };
+    const report = { passed: true, noNpmNeeded: true, version: manifest.version, worker: true, settingsRoute: true, asset: true, portsManifest:true,agentSchema:true,imageRenderer:true,offlineSegmentation:true,emptyCutoutGuard:true, stopped: true, at: new Date().toISOString() };
     c.write(c.path.join(parent, "fresh-package-result.json"), report); console.log(JSON.stringify(report, null, 2));
   } finally {
     if (run) { const stopped = await run(["stop"]); if (stopped.exit) throw Error("Fresh test runtime could not stop; preserved its folder for inspection."); }
