@@ -31,9 +31,9 @@ Local detailed reports/screenshots live in ignored `artifacts/id-generator-accep
 
 ## Real Photoshop limitation
 
-Real exports were attempted with synthetic employee/fixture data and private copies of EmployeeID.psd and IDCARDPRINT.psd. They did **not** pass: an empty cutout first failed, subsequent blocked host automation returned Windows80080005 or cancelled/rejected commands. The owner confirmed an Adobe subscription-payment screen.
+Real exports were attempted with synthetic employee/fixture data and private copies of EmployeeID.psd and IDCARDPRINT.psd. They did **not** pass: an empty cutout first failed, subsequent blocked host automation returned Windows80080005 or cancelled/rejected commands. A blocking Adobe application screen prevented the final export check.
 
-That screen delayed queued scripts beyond worker cleanup, producing the reported `Input JSON not found` dialog. The worker now keeps immutable job-scoped inputs and guarded entry scripts, marks jobs terminal, skips stale/absent-input entries, preserves unrelated documents, restores display-dialog preferences and reports errors without rethrowing modal JavaScript exceptions. Test fixture processes were stopped. No additional real export is attempted until Photoshop access is restored.
+Blocked invocation delayed queued scripts beyond worker cleanup, producing the reported `Input JSON not found` dialog. The worker now keeps immutable job-scoped inputs and guarded entry scripts, marks jobs terminal, skips stale/absent-input entries, preserves unrelated documents, restores display-dialog preferences and reports errors without rethrowing modal JavaScript exceptions. Test fixture processes were stopped. No additional real export is attempted until Photoshop access is restored.
 
 Package/DevHub success is **not** proof of a Photoshop export. The screen/COM issue must be cleared and the final real front/back output inspected before calling this a fully verified production release.
 
@@ -49,6 +49,6 @@ These production Glass/phone checks are **UNVERIFIED** while the other builder o
 
 - `f116348`: Ports service, shared model/image pipeline, local renderer dependencies.
 - `5d88b8b`: owner settings, embedded panel, persistent defaults/retention and safe Photoshop documents.
-- Final acceptance checkpoint adds late-dispatch protection, package regression checks and this report.
+- `fcea8b0`: late-dispatch protection, package regression checks and this report.
 
 Use [builder handoff](ID_GENERATOR_PORTS_HANDOFF.md) and [connector README](../local-server/id-generator/README.md) for setup and exact port workflow.
