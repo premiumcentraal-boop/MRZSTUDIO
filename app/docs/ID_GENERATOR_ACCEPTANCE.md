@@ -29,6 +29,8 @@ All source changes are in MRZ Studio Local. Cyclone/Glass/Artemis source was not
 
 Local detailed reports/screenshots live in ignored `artifacts/id-generator-acceptance/`; clean-package report in `artifacts/launcher-build/fresh-package-result.json`. Generated employee/test outputs, Photoshop reports, input snapshots and actual keys are never committed or packaged.
 
+The clean GitHub runner exposed a missing source-build peer-resolution setting. The launcher build now explicitly uses the same legacy peer resolution as `app/.npmrc`, so source builds from the ZIP and clean clones reproduce the existing lock without fetching a different React type dependency. The source review branch also includes that non-secret npm setting.
+
 ## Real Photoshop limitation
 
 Real exports were attempted with synthetic employee/fixture data and private copies of EmployeeID.psd and IDCARDPRINT.psd. They did **not** pass: an empty cutout first failed, subsequent blocked host automation returned Windows80080005 or cancelled/rejected commands. A blocking Adobe application screen prevented the final export check.
