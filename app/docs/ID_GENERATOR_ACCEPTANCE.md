@@ -31,6 +31,8 @@ Local detailed reports/screenshots live in ignored `artifacts/id-generator-accep
 
 The clean GitHub runner exposed a missing source-build peer-resolution setting. The launcher build now explicitly uses the same legacy peer resolution as `app/.npmrc`, so source builds from the ZIP and clean clones reproduce the existing lock without fetching a different React type dependency. The source review branch also includes that non-secret npm setting.
 
+The Windows runner also held a JSON file past the previous 900 ms rename retry budget. Atomic replacement now tolerates transient read/antivirus locks for a bounded five seconds, keeps the old JSON intact and never deletes it as a fallback. The real Windows lock regression holds the file for 1200 ms, exceeding the old budget.
+
 ## Real Photoshop limitation
 
 Real exports were attempted with synthetic employee/fixture data and private copies of EmployeeID.psd and IDCARDPRINT.psd. They did **not** pass: an empty cutout first failed, subsequent blocked host automation returned Windows80080005 or cancelled/rejected commands. A blocking Adobe application screen prevented the final export check.
