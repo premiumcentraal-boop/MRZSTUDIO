@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
-const {createPlugin}=require('../local-server/id-generator/plugin');
+const {createPlugin,hubUrl}=require('../local-server/id-generator/plugin');
 const {createStore,DEFAULTS}=require('../local-server/id-generator/store');
 const model=require('../local-server/id-generator/model.cjs');
 const BASE=path.resolve(__dirname,'../../artifacts/id-generator-acceptance/tests');fs.mkdirSync(BASE,{recursive:true});
@@ -11,7 +11,7 @@ function sign(raw,url,key=secret,requestId=crypto.randomUUID(),t=Math.floor(Date
 }
 async function fixture(){
   const root=fs.mkdtempSync(path.join(BASE,'ports-')),jobs=new Map();let plugin,calls=0;
-  const server=http.createServer(async(req,res)=>{if(req.url==='/v1/artifacts/photo'){res.writeHead(200,{'Content-Type':'image/png'});res.end(PNG);return;}if(await plugin.handle(req,res))return;res.writeHead(404);res.end();});
+  const server=http.createServer(async(req,res)=>{if(req.url==='/v1/artifacts/photo'||req.url==='/v1/ports/artifacts/photo?t=one-use'){res.writeHead(200,{'Content-Type':'image/png'});res.end(PNG);return;}if(await plugin.handle(req,res))return;res.writeHead(404);res.end();});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));const port=server.address().port,base=`http://127.0.0.1:${port}`;
   const paths={root,incoming:path.join(root,'incoming'),done:path.join(root,'done'),failed:path.join(root,'failed'),output:path.join(root,'output'),workerOutput:path.join(root,'worker-output'),workerCurrentJob:path.join(root,'current-job'),heartbeat:path.join(root,'heartbeat.json')};
   const reopen=async()=>{await plugin?.close();plugin=createPlugin({control:path.join(root,'control'),paths,apiPort:port,render:async()=>{calls++;return {photo:PNG,signature:PNG};},load:key=>jobs.has(key)?{job:jobs.get(key),stage:jobs.get(key).status==='processing'?'processing':'done'}:null,resolve:key=>path.join(paths.output,key,'front.png'),publish:async(job)=>{const dir=path.join(paths.output,job.id);fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'front.png'),PNG);jobs.set(job.id,{...job,status:'complete',output_front_png_path:'front.png'});}});};
@@ -22,6 +22,10 @@ async function fixture(){
   return {root,get plugin(){return plugin;},paths,reopen,jobs,base,post,envelope,cleanup,calls:()=>calls};
 }
 const employee={first_name:'Sam',last_name:'Example',birth_date:'1990-06-14',valid_from:'2026-10-01',city_of_birth:'Custom Town',height_cm:188};
+test('artifact URLs accept SDK and real Glass paths but refuse unrelated or remote URLs',()=>{
+  for(const u of ['http://127.0.0.1:8765/v1/ports/artifacts/art_photo?t=one-use','http://127.0.0.1:8794/v1/artifacts/photo?t=test'])assert.equal(hubUrl(u,'artifact').protocol,'http:');
+  for(const u of ['https://example.com/v1/ports/artifacts/photo','http://127.0.0.1:8765/v1/ports/plugins','http://127.0.0.1:8765/v1/artifacts/photo/../../settings','http://user:pw@127.0.0.1/v1/artifacts/photo'])assert.throws(()=>hubUrl(u,'artifact'));
+});
 test('canonical model preserves template name order, MRZ checks, random and manual values, custom city and height',()=>{
   const form=model.normalizeEmployee(employee);const payload=model.employeePayload(form);assert.equal(payload.first_name,'Example');assert.equal(payload.last_name,'Sam');assert.equal(payload.height,'1,88 m');assert.equal(payload.city_of_birth,'Custom Town');assert.match(payload.mrz,/EXAMPLE<<SAM/);
   assert.ok(payload.mrz.split('\n').every(l=>l.length===30));assert.equal(model.normalizeEmployee({...employee,doc_number:form.doc_number,personal_number:form.personal_number}).doc_number,form.doc_number);
@@ -92,7 +96,7 @@ test('photo/generation idempotency, file delivery, run/request matching and retr
   const hub=http.createServer(async(req,res)=>{let text='';for await(const c of req)text+=c;deliveries.push({url:req.url,headers:req.headers,body:JSON.parse(text)});res.writeHead(deliveries.length===1?503:200,{'Content-Type':'application/json','Retry-After':'1'});res.end('{"accepted":true}');});
   await new Promise(r=>hub.listen(0,'127.0.0.1',r));callback=`http://127.0.0.1:${hub.address().port}`;
   try{
-    const photo=f.envelope('file.out',{assetId:'photo-demo',name:'portrait.png'}, {artifactUrl:f.base+'/v1/artifacts/photo'});
+    const photo=f.envelope('file.out',{assetId:'photo-demo',name:'portrait.png'}, {artifactUrl:f.base+'/v1/ports/artifacts/photo?t=one-use'});
     assert.equal((await f.post('/ports/file.out',photo)).status,202);
     const generated=f.envelope('x.id-generator.generate',{requestId:'employee-demo',photoId:'photo-demo',employee,signature:{font:'paul-signature'},futureField:'ignored'});
     assert.equal((await f.post('/ports/x.id-generator.generate',generated)).status,202);assert.equal((await f.post('/ports/x.id-generator.generate',{...generated,id:'msg_retry'})).body.duplicate,true);

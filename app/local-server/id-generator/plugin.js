@@ -10,7 +10,8 @@ function error(status,code,message,retryable=false){return Object.assign(Error(m
 const id=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(value);
 function hubUrl(raw,kind){
   let u;try{u=new URL(raw);}catch{throw error(422,'invalid_url','Invalid hub URL.');}
-  if(u.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(u.hostname)||u.username||u.password||u.hash||!u.pathname.startsWith(kind==='artifact'?'/v1/artifacts/':'/v1/ports/')) throw error(422,'invalid_url','Only loopback Cyclone hub URLs are accepted.');
+  const pathOK=kind==='artifact'?/^\/v1\/(?:ports\/)?artifacts\/[A-Za-z0-9_-]+$/.test(u.pathname):/^\/v1\/ports\/[A-Za-z0-9_-]+\/[a-z0-9.-]+\/deliver$/.test(u.pathname);
+  if(u.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(u.hostname)||u.username||u.password||u.hash||!pathOK) throw error(422,'invalid_url','Only loopback Cyclone hub URLs are accepted.');
   return u;
 }
 async function boundedBody(req,limit){
