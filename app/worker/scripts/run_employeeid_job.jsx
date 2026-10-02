@@ -12,10 +12,11 @@ government identity documents or legal credential artifacts.
 
 app.bringToFront();
 
-var BASE_PATH = resolveAutomationBasePath("C:/EmployeeBadgeAutomation");
+var JOB_CONTEXT = $.global.CYCLONE_JOB_CONTEXT || null;
+var BASE_PATH = JOB_CONTEXT ? JOB_CONTEXT.base_path : resolveAutomationBasePath("C:/EmployeeBadgeAutomation");
 var TEMPLATE_DIR = BASE_PATH + "/templates";
 var DEFAULT_TEMPLATE_NAME = "EmployeeID.psd";
-var INPUT_JSON_PATH = BASE_PATH + "/current-job/input.json";
+var INPUT_JSON_PATH = JOB_CONTEXT ? JOB_CONTEXT.input_path : BASE_PATH + "/current-job/input.json";
 var OUTPUT_BASE = BASE_PATH + "/output";
 var LOG_DIR = BASE_PATH + "/logs";
 
@@ -225,7 +226,9 @@ function resolveAutomationBasePath(defaultPath) {
   return defaultPath;
 }
 
+var PREEXISTING_DOCUMENT_IDS = {};
 function main() {
+  for (var openedIndex = 0; openedIndex < app.documents.length; openedIndex++) PREEXISTING_DOCUMENT_IDS[app.documents[openedIndex].id] = true;
   var doc = null;
   var input = null;
   try {
@@ -299,7 +302,6 @@ function main() {
       logLine("Could not write error report: " + errorToString(reportError));
     }
 
-    throw error;
   } finally {
     app.displayDialogs = ORIGINAL_DISPLAY_DIALOGS;
   }
@@ -429,8 +431,7 @@ function updateTextSmartObjectByPath(parentDoc, layerPath, psdTextTargets, keys,
   }
 
   parentDoc.activeLayer = smartLayer;
-  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
-  var subDoc = app.activeDocument;
+  var subDoc = openSmartObjectDocument(app.activeDocument);
   logLine("Opened " + label + " as " + subDoc.name + ".");
 
   try {
@@ -507,8 +508,7 @@ function updateBirthYearLayers(doc, input) {
   }
 
   doc.activeLayer = smallDateLayer;
-  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
-  var subDoc = app.activeDocument;
+  var subDoc = openSmartObjectDocument(app.activeDocument);
   try {
     updateOptionalTextLayerByName(subDoc, ACTUAL_EMPLOYEEID_TEMPLATE.smallDateFirstLayer, yearInfo.first, ACTUAL_EMPLOYEEID_TEMPLATE.smallDateLayerPath);
     updateOptionalTextLayerByName(subDoc, ACTUAL_EMPLOYEEID_TEMPLATE.smallDateLastLayer, yearInfo.last, ACTUAL_EMPLOYEEID_TEMPLATE.smallDateLayerPath);
@@ -662,8 +662,7 @@ function updatePerfoSmartObjectByPath(parentDoc, layerPath, perfoString) {
   }
 
   parentDoc.activeLayer = smartLayer;
-  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
-  var subDoc = app.activeDocument;
+  var subDoc = openSmartObjectDocument(app.activeDocument);
   try {
     var layers = [];
     collectTextLayers(subDoc, layers);
@@ -703,7 +702,7 @@ function updatePerfoSmartObjectByPath(parentDoc, layerPath, perfoString) {
       status: "PERFO updated",
       digits_written: wrote
     });
-    logLine("Updated PERFO " + layerPath + " with " + perfoString + ".");
+    logLine("Updated PERFO " + layerPath + ".");
   } catch (error) {
     try {
       subDoc.close(SaveOptions.DONOTSAVECHANGES);
@@ -964,8 +963,7 @@ function updateSmartObjectByPath(parentDoc, layerPath, imagePath, internalLayerN
   }
 
   parentDoc.activeLayer = smartLayer;
-  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
-  var subDoc = app.activeDocument;
+  var subDoc = openSmartObjectDocument(app.activeDocument);
   logLine("Opened smart object " + layerPath + " as " + subDoc.name + ".");
 
   try {
@@ -1605,9 +1603,25 @@ function closeDocumentNoSave(doc) {
   doc.close(SaveOptions.DONOTSAVECHANGES);
 }
 
+
+function openSmartObjectDocument(parentDoc) {
+  var parentId = parentDoc.id;
+  executeAction(stringIDToTypeID("placedLayerEditContents"), new ActionDescriptor(), DialogModes.NO);
+  for (var attempt = 0; attempt < 100; attempt++) {
+    app.refresh();
+    if (app.documents.length && app.activeDocument.id !== parentId) {
+      if (PREEXISTING_DOCUMENT_IDS[app.activeDocument.id]) throw new Error("The smart object is already open in another document. Close it before retrying.");
+      return app.activeDocument;
+    }
+    $.sleep(100);
+  }
+  throw new Error("Photoshop did not open the smart object. Retry after Photoshop is ready.");
+}
+
 function closeAllOpenDocumentsNoSave() {
-  while (app.documents.length > 0) {
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+  for (var i = app.documents.length - 1; i >= 0; i--) {
+    var opened = app.documents[i];
+    if (!PREEXISTING_DOCUMENT_IDS[opened.id]) opened.close(SaveOptions.DONOTSAVECHANGES);
   }
 }
 
@@ -1669,4 +1683,5 @@ function timestamp() {
     "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
 
-main();
+// A delayed legacy launch with no input must not display an error modal.
+if (new File(INPUT_JSON_PATH).exists && (!JOB_CONTEXT || !new File(JOB_CONTEXT.terminal_path).exists)) main();

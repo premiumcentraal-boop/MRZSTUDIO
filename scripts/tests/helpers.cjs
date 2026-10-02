@@ -7,7 +7,7 @@ const port = () => new Promise(resolve => { const server = net.createServer(); s
 async function fixture() {
   const root = path.join(BASE, crypto.randomUUID()); fs.mkdirSync(root, { recursive: true });
   for (const name of ["scripts", "release", "app/local-server"]) fs.cpSync(path.join(ROOT, name), path.join(root, name), { recursive: true });
-  for (const name of ["worker.js", "job-adapter.js", "package.json", "scripts"]) fs.cpSync(path.join(ROOT, "app/worker", name), path.join(root, "app/worker", name), { recursive: true });
+  for (const name of ["worker.js", "job-adapter.js", "photoshop-dispatch.cjs", "run-photoshop.ps1", "package.json", "scripts"]) fs.cpSync(path.join(ROOT, "app/worker", name), path.join(root, "app/worker", name), { recursive: true });
   for (const name of ["mrz.cmd", "package.json"]) fs.copyFileSync(path.join(ROOT, name), path.join(root, name));
   fs.mkdirSync(path.join(root, "app/dist"), { recursive: true }); fs.writeFileSync(path.join(root, "app/dist/index.html"), "<html><title>MRZ fixture</title></html>");
   const v = JSON.parse(fs.readFileSync(path.join(root, "release/version.json")));

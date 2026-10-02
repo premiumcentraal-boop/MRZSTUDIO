@@ -1,3 +1,6 @@
+import { buildEmployeeMrz, employeePayload, normalizeEmployee } from '../lib/employee-id-model';
+import { type PluginSettings } from '../lib/idGeneratorPlugin';
+import { createEmployeeSignature } from '../lib/employee-signature';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { buildTD1, buildTD3, type BuildResult } from "../lib/mrz";
@@ -417,9 +420,11 @@ function getMockJobs(): BadgeJob[] {
 export default function IdGeneratorStep({
   onBack,
   onPickTool,
+  initialPluginSettings,
 }: {
   onBack: () => void;
   onPickTool?: (toolId: string) => void;
+  initialPluginSettings?: PluginSettings;
 }) {
   const [formData, setFormData] = useState({
     // Country + document type
@@ -453,6 +458,12 @@ export default function IdGeneratorStep({
     mrz_format: "auto" as "auto" | "td1" | "td3",
     mrz_method: "icao9303" as "icao9303" | "icao_strict" | "none",
   });
+  useEffect(() => {
+    if (!initialPluginSettings) return;
+    const defaults = initialPluginSettings.employee;
+    const preset = getCountryPreset(defaults.country);
+    setFormData(current => ({...current,...defaults,country: defaults.country as any,doc_type: defaults.doc_type as any,issuer_code: preset.issuerCode,nationality_code: preset.nationalityCode,country_of_birth: preset.nationalityDemonym,doc_number:generateDocNumber(current.valid_from,defaults.doc_type==='passport'?'passport':'identity_card',defaults.country),personal_number:preset.personalNumber.generate()}));
+  }, [initialPluginSettings]);
   const [employeePhoto, setEmployeePhoto] = useState<File | null>(null);
   const [photoEditorSource, setPhotoEditorSource] = useState<File | null>(null);
   const [signatureEditorSource, setSignatureEditorSource] = useState<File | null>(null);
@@ -487,58 +498,7 @@ export default function IdGeneratorStep({
   // The issuer/nationality codes come from the Country & Document section,
   // so changing country (NL/DE/OTHER) or document type re-targets the right tool.
   const mrzResult: BuildResult = useMemo(() => {
-    const preset = getCountryPreset(formData.country as CountryCode);
-    // NL NIK model-year rule:
-    //   2014 generation (issue 2014-03-09 .. 2021-08-01): BSN encoded in line-1 optional data.
-    //   2021+ generation: BSN removed from the MRZ.
-    // Other countries: pass personal_number straight through.
-    const issueYear =
-      /^\d{4}-\d{2}-\d{2}$/.test(formData.valid_from || "")
-        ? parseInt(formData.valid_from.slice(0, 4), 10)
-        : new Date().getFullYear();
-    const nlPre2021 = formData.country === "NL" && issueYear < 2021;
-    const optional1 =
-      formData.country === "NL"
-        ? nlPre2021
-          ? formData.personal_number
-          : ""
-        : formData.personal_number;
-    const mrzInput = {
-      documentCode: formData.doc_type === "passport" ? "P<" : "I<",
-      issuer: formData.issuer_code || preset.issuerCode,
-      number: formData.doc_number,
-      surname: formData.last_name,
-      given: formData.first_name,
-      nationality: formData.nationality_code || preset.nationalityCode,
-      birth: formData.birth_date,
-      sex:
-        formData.country === "NL" || formData.country === "DE"
-          ? formatGenderForDocument({
-              country: formData.country,
-              documentType: formData.doc_type,
-              gender: formData.gender,
-              target: "mrz",
-            })
-          : formData.gender,
-      expiry: formData.expires,
-      // TD3 personal field is unused for NL (BSN goes into TD1 optional1 instead).
-      personal: formData.country === "NL" ? "" : formData.personal_number,
-      optional1,
-      optional2: "",
-    };
-    // For OTHER, the user can override format via mrz_format ("auto" follows doc_type).
-    const resolvedFormat =
-      formData.country === "OTHER" && formData.mrz_format !== "auto"
-        ? formData.mrz_format
-        : formData.doc_type === "passport"
-        ? "td3"
-        : "td1";
-    if (formData.country === "OTHER") {
-      mrzInput.documentCode = resolvedFormat === "td3" ? "P<" : "I<";
-    }
-    return resolvedFormat === "td3"
-      ? buildTD3(mrzInput as any)
-      : buildTD1(mrzInput as any);
+    return buildEmployeeMrz(formData);
   }, [
     formData.country,
     formData.doc_type,
@@ -671,7 +631,8 @@ export default function IdGeneratorStep({
 
     if (isLocalMode) {
       try {
-        setRecentJobs(await localListJobs());
+        const jobs=await localListJobs();
+        setRecentJobs(initialPluginSettings ? jobs.filter(job=>job.input_json?.meta?.created_from?.startsWith('cyclone-ports/id-generator')) : jobs);
       } catch {
         /* local API not up yet */
       }
@@ -801,44 +762,19 @@ export default function IdGeneratorStep({
 
     try {
       const birthYear = calculateBirthYear(formData.birth_date);
-      const jobPayload: BadgeJobPayload = {
-        template: "EmployeeID.psd",
-        country: formData.country,
-        doc_type: formData.doc_type,
-        nationality_code: formData.nationality_code,
-        mrz: mrzString,
-        company_name: formData.company_name,
-        issuer_code: formData.issuer_code,
-        department: formData.department,
-        // Worker/PSD output expects names swapped versus our form labels.
-        first_name: formData.last_name,
-        last_name: formData.first_name,
-        doc_number: formData.doc_number,
-        personal_number: formData.personal_number,
-        valid_from: formData.valid_from,
-        expires: formData.expires,
-        birth_date: formData.birth_date,
-        birth_year: birthYear,
-        gender: formData.gender,
-        height: formData.height,
-        country_of_birth: formData.country_of_birth,
-        city_of_birth: formData.city_of_birth,
-        company_location: formatBurgVanLocation(formData.company_location || formData.city_of_birth),
-        export_format: formData.export_format as any,
-        generate_mockups: formData.generate_mockups,
-        assets: {
-          employee_photo_path: "",
-          signature_image_path: signatureImage ? "" : undefined,
-        },
-        meta: {
-          created_from: "custom-tools/id-generator",
-          intended_use: "internal_company_badge",
-        },
-      };
+      let submittedSignature = signatureImage;
+      if (initialPluginSettings && !submittedSignature) {
+        const policy = initialPluginSettings.signature;
+        const text = policy.name_mode === "custom" ? policy.text : policy.name_mode === "full_name" ? `${formData.first_name} ${formData.last_name}` : formData.first_name;
+        submittedSignature = (await createEmployeeSignature(text, policy)).file;
+      }
+      const checkedForm = initialPluginSettings ? normalizeEmployee(formData) : formData;
+      const jobPayload = employeePayload(checkedForm, !!submittedSignature) as BadgeJobPayload;
+      if(initialPluginSettings)jobPayload.meta.created_from='cyclone-ports/id-generator-panel';
 
       // Local filesystem queue (default in this tree)
       if (isLocalMode && !isMockMode) {
-        const created = await localCreateJob(jobPayload, employeePhoto, signatureImage);
+        const created = await localCreateJob(jobPayload, employeePhoto, submittedSignature);
         setCurrentJob(created);
         return;
       }
@@ -1103,7 +1039,7 @@ export default function IdGeneratorStep({
 
   // Country preset drives issuer code, gender options, personal-number generator,
   // expiry cap, and the MRZ layout (TD1 for ID cards, TD3 for passports).
-  const [formMode, setFormMode] = useState<"simple" | "advanced">("simple");
+  const [formMode, setFormMode] = useState<"simple" | "advanced">(initialPluginSettings ? "advanced" : "simple");
   const CITY_OPTIONS = ["Rotterdam", "Amsterdam", "Zoetermeer"];
 
   const preset = getCountryPreset(formData.country);
@@ -1153,6 +1089,7 @@ export default function IdGeneratorStep({
       {photoEditorSource && (
         <PhotoEditor
           sourceFile={photoEditorSource}
+          initialCrop={initialPluginSettings?.photo}
           onConfirm={handlePhotoEditorConfirm}
           onCancel={() => setPhotoEditorSource(null)}
           background="transparent"
@@ -1190,10 +1127,10 @@ export default function IdGeneratorStep({
       )}
       <div className="text-center mb-8">
         <h1 className="text-white text-3xl sm:text-4xl tracking-tight" style={{ lineHeight: 1.1 }}>
-          Identity document Generator
+          {initialPluginSettings ? 'ID Generator' : 'Identity document Generator'}
         </h1>
         <p className="text-white/55 mt-3 max-w-xl mx-auto">
-          Generate high quality realistic ID cards and mockups
+          {initialPluginSettings ? 'Generate employee IDs and mockups on this PC' : 'Generate high quality realistic ID cards and mockups'}
         </p>
       </div>
 
@@ -1363,7 +1300,7 @@ export default function IdGeneratorStep({
                     onChange={(e) => applyDocType(e.target.value as DocType)}
                     className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-white/30"
                   >
-                    {preset.supportedDocTypes.map((t) => (
+                    {preset.supportedDocTypes.filter(t=>!initialPluginSettings||t!=='driving_licence').map((t) => (
                       <option key={t} value={t}>
                         {docTypeLabel(t)}
                       </option>
@@ -1859,7 +1796,9 @@ export default function IdGeneratorStep({
                   </div>
                 )}
                 <SignatureGenerator
+                  initialSettings={initialPluginSettings?.signature}
                   defaultName={(() => {
+                    if(initialPluginSettings){const sig=initialPluginSettings.signature;return sig.name_mode==='custom'?sig.text:sig.name_mode==='full_name'?`${formData.first_name} ${formData.last_name}`:formData.first_name;}
                     // Use only WHOLE name parts that fit in 10 characters total
                     // (spaces included). "Hans Tak" -> "Hans Tak" (8). "Johanathan
                     // Fredricus" -> "Johanathan" (10) — the surname would push
@@ -2080,13 +2019,13 @@ export default function IdGeneratorStep({
       {/* Suggested tools — linear row spanning the full width below
           Document Details + Job status (on desktop they sit side by side,
           on mobile the job status panel is directly above). */}
-      <div className="mt-6">
+      {!initialPluginSettings && <div className="mt-6">
         <SuggestedToolsRow
           country={formData.country === "OTHER" ? "ALL" : formData.country}
           docType="ALL"
           onPick={(id) => onPickTool?.(id)}
         />
-      </div>
+      </div>}
 
       {/* Recent Jobs Table */}
       {recentJobs.length > 0 && (

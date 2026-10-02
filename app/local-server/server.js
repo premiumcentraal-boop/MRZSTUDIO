@@ -40,6 +40,7 @@ const PORT = apiPort();
 const HOST = process.env.LOCAL_API_HOST || "127.0.0.1";
 const STUDIO_VERSION = require("../../release/version.json");
 const handleMcpSettings = require("./mcp-connections").createSettingsHandler(PATHS.control);
+const idGeneratorPlugin = require('./id-generator/plugin').createPlugin({control:PATHS.control,paths:PATHS,apiPort:PORT,uiPort:Number(process.env.MRZ_UI_PORT||5173),health:healthPayload});
 
 function log(line) {
   console.log(line);
@@ -192,6 +193,7 @@ async function handleCreateJob(req, res) {
   }
   // Publish the claimable job record only after all input assets are complete.
   saveJob("incoming", job);
+  if(payload.meta?.created_from==='cyclone-ports/id-generator-panel')idGeneratorPlugin.trackPanelJob(job);
 
   log(`created job ${job.id} in queue/incoming`);
   send(res, 201, toPublicJob(job));
@@ -246,6 +248,7 @@ function handleFile(jobId, fileName, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    if (await idGeneratorPlugin.handle(req, res)) return;
     if (await handleMcpSettings(req, res)) return;
     if (req.method === "OPTIONS") {
       corsPreflight(res);
@@ -315,6 +318,7 @@ let closing = false;
 function shutdown() {
   if (closing) return;
   closing = true;
+  void idGeneratorPlugin.close();
   log("Local API shutting down");
   server.close(() => process.exit(0));
   server.closeIdleConnections();

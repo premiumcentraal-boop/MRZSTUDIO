@@ -1,45 +1,30 @@
+import { SIGNATURE_FONTS } from '../../lib/signature-options';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PenLine, Check, RotateCcw } from "lucide-react";
 import { ensureBundledFontsLoaded, waitForFontReady } from "../../lib/signature-fonts";
 import { SIGNATURE_H, SIGNATURE_W } from "../../lib/image-export-sizes";
 import { canvasToSignaturePng, drawSignature, sizeSignatureCanvas } from "../../lib/signature-raster";
 
-const SIGNATURE_FONTS: { id: string; label: string; family: string; size: number }[] = [
-  { id: "paul-signature", label: "Paul Signature", family: "'Paul Signature', cursive", size: 96 },
-  { id: "testimonia", label: "Testimonia", family: "'Testimonia Signature', cursive", size: 96 },
-  { id: "royalty", label: "Royalty", family: "'Royalty Signature', cursive", size: 96 },
-  { id: "taylor-swift", label: "Taylor Swift", family: "'Taylor Swift', cursive", size: 96 },
-  { id: "caramellia", label: "Caramellia", family: "'Caramellia', cursive", size: 96 },
-  { id: "stay-classy", label: "Stay Classy", family: "'Stay Classy', cursive", size: 96 },
-  { id: "ronde-royal", label: "Ronde Royal", family: "'Ronde Royal', cursive", size: 96 },
-  { id: "rightman-signature", label: "Rightman Signature", family: "'Rightman Signature', cursive", size: 96 },
-  { id: "dwayne-dylan", label: "Dwayne Dylan", family: "'Dwayne Dylan', cursive", size: 96 },
-  { id: "great-vibes", label: "Great Vibes", family: "'Great Vibes', cursive", size: 96 },
-  { id: "allura", label: "Allura", family: "'Allura', cursive", size: 96 },
-  { id: "sacramento", label: "Sacramento", family: "'Sacramento', cursive", size: 92 },
-  { id: "mrs-saint", label: "Mrs Saint Delafield", family: "'Mrs Saint Delafield', cursive", size: 100 },
-  { id: "dancing", label: "Dancing Script", family: "'Dancing Script', cursive", size: 80 },
-  { id: "homemade", label: "Homemade Apple", family: "'Homemade Apple', cursive", size: 64 },
-  { id: "parisienne", label: "Parisienne", family: "'Parisienne', cursive", size: 84 },
-  { id: "caveat", label: "Caveat", family: "'Caveat', cursive", size: 84 },
-];
+
 
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
 
 export function SignatureGenerator({
   defaultName,
+  initialSettings,
   onUse,
 }: {
   defaultName?: string;
+  initialSettings?: {font:string;scale:number;x:number;y:number};
   onUse: (file: File, dataUrl: string) => void;
 }) {
   const [text, setText] = useState(defaultName || "");
-  const [fontId, setFontId] = useState(SIGNATURE_FONTS[0].id);
+  const [fontId, setFontId] = useState(initialSettings?.font || SIGNATURE_FONTS[0].id);
   const [fontsReady, setFontsReady] = useState(false);
-  const [userScale, setUserScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [transformLocked, setTransformLocked] = useState(false);
+  const [userScale, setUserScale] = useState(initialSettings?.scale || 1);
+  const [offset, setOffset] = useState({ x: initialSettings?.x || 0, y: initialSettings?.y || 0 });
+  const [transformLocked, setTransformLocked] = useState(!!initialSettings);
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

@@ -12,11 +12,7 @@
  * ========================================================================== */
 
 import { isValidBSN } from "./mrz";
-import {
-  generateBSN,
-  generateSyntheticGermanSteuerId,
-  validateGermanSteuerId,
-} from "../app/steps/nl-tools-step";
+import { generateBsn as generateBSN } from './dutch-id-validation/bsn';
 import {
   generateSteuerId as libGenerateSteuerId,
   validateSteuerId as libValidateSteuerId,

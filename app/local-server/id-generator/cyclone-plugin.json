@@ -1,0 +1,13 @@
+{
+  "contract": "cyclone.ports/1",
+  "name": "id-generator",
+  "version": "0.1.0",
+  "title": "ID Generator",
+  "description": "MRZ Studio's local internal employee ID generator. Photos, employee details and generated files remain on this PC until the owner's configured retention expires.",
+  "endpoint": "http://127.0.0.1:8787",
+  "serves": [{"port":"file.out","way":"out"},{"port":"x.id-generator.generate","way":"out"},{"port":"value.in","way":"in"},{"port":"file.in","way":"in"}],
+  "needs": {"personal":true},
+  "features": ["idempotent-delivery"],
+  "ui": {"panelUrl":"http://127.0.0.1:5173/plugins/id-generator?embed=1","settingsUrl":"http://127.0.0.1:5173/settings/id-generator"},
+  "schemaUrl": "http://127.0.0.1:8787/api/id-generator/schema"
+}
